@@ -42,15 +42,20 @@ select:focus {
 }
 
 .judul-container {
+  position: fixed; /* ⬅️ Tetap di posisi atas layar */
+  top: 0;           /* ⬅️ Menempel di bagian atas */
+  left: 0;
+  right: 0;
+  z-index: 999;     /* ⬅️ Pastikan tampil di atas elemen lain */
+  
   background: linear-gradient(to right, #2e7d32, #a5d6a7);
-  padding: 32px 0; /* ⬅️ padding horizontal dihapus */
-  margin: 0 auto 24px;
-  width: 100%; /* ⬅️ ganti dari 100vw */
+  padding: 4px 0;   /* ⬅️ Padding atas saja */
+  margin: 0 auto;
+  width: 100%;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   color: white;
   text-align: center;
   border-radius: 0;
-  padding-top: 4px;
 }
 
 .judul-flex {
@@ -756,4 +761,5 @@ document.getElementById('btn-simpan').addEventListener('click', async () => {
 </script>
 </body>
 </html>
+
 
