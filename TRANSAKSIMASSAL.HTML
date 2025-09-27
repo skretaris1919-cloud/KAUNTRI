@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>Transaksi Massal</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #fdfdfd;
+    }
+
+    .massal-box {
+      margin-bottom: 20px;
+      padding: 12px;
+      background-color: #fff8e1;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    .massal-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .massal-row label {
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .massal-row input[type="text"] {
+      padding: 6px 8px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      min-width: 180px;
+    }
+
+    .btn-massal,
+    .btn-navigasi {
+      padding: 6px 12px;
+      font-size: 14px;
+      background-color: #FF9800;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .btn-massal:hover,
+    .btn-navigasi:hover {
+      background-color: #F57C00;
+    }
+
+    #tabel-saldo {
+      margin-top: 24px;
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    #tabel-saldo th,
+    #tabel-saldo td {
+      padding: 4px 6px;
+      border: 1px solid #ccc;
+      text-align: left;
+    }
+
+    #tabel-saldo thead {
+      background-color: #f8f8f8;
+    }
+
+    #tabel-saldo tbody tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+
+    #loading-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(255, 255, 255, 0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    #loading-overlay span {
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+      background: #fff3cd;
+      padding: 12px 24px;
+      border: 1px solid #f0ad4e;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="loading-overlay"><span>⏳ Memproses transaksi massal...</span></div>
+
+  <div class="massal-box">
+    <h3>Transaksi Massal</h3>
+    <div class="massal-row">
+      <label for="keperluan-massal">Keperluan:</label>
+      <input type="text" id="keperluan-massal" placeholder="Contoh: Pengurangan saldo rutin" />
+
+      <label for="nominal-massal">Nominal:</label>
+      <input type="text" id="nominal-massal" placeholder="Contoh: 10000" />
+
+      <button class="btn-massal" id="btn-massal">💸 Proses transaksi</button>
+      <button class="btn-navigasi" onclick="window.location.href='LUNAS.html'">➡️ Daftar pelunasan</button>
+    </div>
+  </div>
+
+  <table id="tabel-saldo">
+    <thead>
+      <tr>
+        <th><input type="checkbox" id="select-all" /></th>
+        <th>No ID</th>
+        <th>Nama</th>
+        <th>Alamat</th>
+        <th>Nama Kamar</th>
+        <th>Jumlah Kiriman</th>
+        <th>Saldo Tabungan</th>
+        <th>Saldo Akhir</th>
+        <th>Limit Harian</th>
+        <th>Makan</th>
+        <th>Foto</th>
+        <th>Waktu</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const supabase = createClient(
+      'https://brnqpdvtninzyqqwhmfj.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJybnFwZHZ0bmluenlxcXdobWZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc1NjU3OTQsImV4cCI6MjA3MzE0MTc5NH0.6u2P5ANnDV1237hEY73M0OHRDftwc3-G0JbRx44YcZc'
+    );
+
+    async function ambilDataSaldo() {
+      const { data, error } = await supabase
+        .from('tb_saldo')
+        .select('*')
+        .order('waktu', { ascending: false });
+
+      if (error) return console.error('❌ Gagal ambil data:', error.message);
+
+      const tbody = document.querySelector('#tabel-saldo tbody');
+      tbody.innerHTML = '';
+
+      data.forEach(item => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><input type="checkbox" class="row-check" data-id="${item.no_id}" /></td>
+          <td>${item.no_id}</td>
+          <td>${item.nama}</td>
+          <td>${item.alamat}</td>
+          <td>${item.nama_kamar}</td>
+          <td>Rp. ${parseInt(item.jumlah_kiriman || 0).toLocaleString()}</td>
+          <td>Rp. ${parseInt(item.saldo_tabungan || 0).toLocaleString()}</td>
+          <td>Rp. ${parseInt(item.saldo_akhir || 0).toLocaleString()}</td>
+          <td>Rp. ${parseInt(item.limit_harian || 0).toLocaleString()}</td>
+          <td>${item.makan}</td>
+          <td><img src="${item.foto_url?.startsWith('http') ? item.foto_url : ''}" width="60" /></td>
+          <td>${new Date(item.waktu).toLocaleString()}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    document.getElementById('select-all').addEventListener('change', function () {
+      const checked = this.checked;
+      document.querySelectorAll('.row-check').forEach(cb => cb.checked = checked);
+    });
+
+    document.getElementById('btn-massal').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-massal');
+  const overlay = document.getElementById('loading-overlay');
+  const nominal = parseInt(document.getElementById('nominal-massal').value.trim());
+  const keperluan = document.getElementById('keperluan-massal').value.trim();
+
+  if (!nominal || isNaN(nominal) || nominal <= 0 || !keperluan) {
+    alert('⚠️ Nominal dan keperluan harus diisi.');
+    return;
+  }
+
+  const selectedIds = Array.from(document.querySelectorAll('.row-check:checked'))
+    .map(cb => cb.dataset.id);
+
+  if (selectedIds.length === 0) {
+    alert('⚠️ Tidak ada data yang dipilih.');
+    return;
+  }
+
+  const { data: santri, error } = await supabase
+    .from('tb_saldo')
+    .select('no_id, nama, alamat, nama_kamar, jumlah_kiriman')
+    .in('no_id', selectedIds);
+
+  if (error) {
+    alert('❌ Gagal ambil data saldo: ' + error.message);
+    return;
+  }
+
+  overlay.style.display = 'flex';
+  btn.disabled = true;
+
+  const hasil = [];
+
+  for (const item of santri) {
+    const saldoAwal = parseInt(item.jumlah_kiriman || 0);
+    const status = saldoAwal >= nominal ? 'LUNAS' : 'TIDAK LUNAS';
+    const saldoBaru = saldoAwal - nominal;
+
+    await supabase.from('tb_massal').insert({
+      no_id: item.no_id,
+      nama: item.nama,
+      alamat: item.alamat,
+      nama_kamar: item.nama_kamar,
+      keperluan,
+      nominal: nominal.toString(),
+      status,
+      created_at: new Date().toISOString()
+    });
+
+    if (status === 'LUNAS') {
+      await supabase
+        .from('tb_saldo')
+        .update({ jumlah_kiriman: saldoBaru })
+        .eq('no_id', item.no_id);
+    }
+
+    hasil.push({ nama: item.nama, status });
+  }
+
+  const lunasList = hasil.filter(h => h.status === 'LUNAS').map(h => h.nama);
+  const gagalList = hasil.filter(h => h.status === 'TIDAK LUNAS').map(h => h.nama);
+  const totalBerhasil = lunasList.length * nominal;
+
+  let pesan = `✅ Transaksi selesai.\n\n`;
+  pesan += `📌 Jumlah anggota dipilih: ${hasil.length}\n`;
+  pesan += `✅ Berhasil diproses: ${lunasList.length} anggota\n`;
+  pesan += `💰 Total nominal berhasil dieksekusi: Rp. ${totalBerhasil.toLocaleString()}\n\n`;
+
+  if (lunasList.length > 0) {
+    pesan += `✅ LUNAS:\n- ${lunasList.join('\n- ')}\n\n`;
+  }
+
+  if (gagalList.length > 0) {
+    pesan += `⚠️ TIDAK LUNAS:\n- ${gagalList.join('\n- ')}\n\n`;
+  }
+
+  alert(pesan);
+  ambilDataSaldo();
+  overlay.style.display = 'none';
+  btn.disabled = false;
+});
+
+    ambilDataSaldo(); // Load awal
+  </script>
+
+</body>
+</html>

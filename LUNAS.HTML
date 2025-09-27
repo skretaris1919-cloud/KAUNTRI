@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lunaskan Transaksi</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #fdfdfd;
+    }
+    .kontainer {
+      margin-bottom: 20px;
+      padding: 12px;
+      background-color: #e3f2fd;
+      border: 1px solid #90caf9;
+      border-radius: 6px;
+    }
+    .btn-lunaskan {
+      padding: 6px 12px;
+      font-size: 14px;
+      background-color: #2196F3;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .btn-lunaskan:hover {
+      background-color: #1976D2;
+    }
+    #tabel-massal {
+      margin-top: 24px;
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    #tabel-massal th, #tabel-massal td {
+      padding: 4px 6px;
+      border: 1px solid #ccc;
+      text-align: left;
+    }
+    #tabel-massal thead {
+      background-color: #f8f8f8;
+    }
+    #tabel-massal tbody tr.tidak-lunas {
+      background-color: #ffebee;
+      color: #d32f2f;
+      font-weight: bold;
+    }
+    #loading-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(255, 255, 255, 0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    #loading-overlay span {
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+      background: #fff3cd;
+      padding: 12px 24px;
+      border: 1px solid #f0ad4e;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="loading-overlay"><span>⏳ Memproses pelunasan...</span></div>
+
+  <div class="kontainer">
+    <button class="btn-lunaskan" id="btn-lunaskan">✅ LUNASKAN!</button>
+  </div>
+
+  <table id="tabel-massal">
+    <thead>
+      <tr>
+        <th><input type="checkbox" id="select-all" /></th>
+        <th>No ID</th>
+        <th>Nama</th>
+        <th>Alamat</th>
+        <th>Nama Kamar</th>
+        <th>Nominal</th>
+        <th>Status</th>
+        <th>Waktu</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const supabase = createClient(
+      'https://brnqpdvtninzyqqwhmfj.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJybnFwZHZ0bmluenlxcXdobWZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc1NjU3OTQsImV4cCI6MjA3MzE0MTc5NH0.6u2P5ANnDV1237hEY73M0OHRDftwc3-G0JbRx44YcZc'
+    );
+
+    async function ambilDataMassal() {
+      const { data, error } = await supabase
+        .from('tb_massal')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) return console.error('❌ Gagal ambil data:', error.message);
+
+      const tbody = document.querySelector('#tabel-massal tbody');
+      tbody.innerHTML = '';
+
+      data.forEach(item => {
+        const nominal = parseInt(item.nominal?.replace(/\D/g, '') || '0');
+        const row = document.createElement('tr');
+        if (item.status === 'TIDAK LUNAS') row.classList.add('tidak-lunas');
+
+        row.innerHTML = `
+          <td><input type="checkbox" class="row-check" data-id="${item.no_id}" data-nominal="${nominal}" /></td>
+          <td>${item.no_id}</td>
+          <td>${item.nama}</td>
+          <td>${item.alamat}</td>
+          <td>${item.nama_kamar}</td>
+          <td>Rp. ${nominal.toLocaleString()}</td>
+          <td>${item.status}</td>
+          <td>${new Date(item.created_at).toLocaleString()}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    document.getElementById('select-all').addEventListener('change', function () {
+      const checked = this.checked;
+      document.querySelectorAll('.row-check').forEach(cb => cb.checked = checked);
+    });
+
+    document.getElementById('btn-lunaskan').addEventListener('click', async () => {
+      const btn = document.getElementById('btn-lunaskan');
+      const overlay = document.getElementById('loading-overlay');
+
+      const selected = Array.from(document.querySelectorAll('.row-check:checked'));
+      if (selected.length === 0) {
+        alert('⚠️ Tidak ada data yang dipilih.');
+        return;
+      }
+
+      const totalNominal = selected.reduce((sum, cb) => sum + parseInt(cb.dataset.nominal || '0'), 0);
+      const jumlahAnggota = selected.length;
+
+      const konfirmasi = confirm(
+        `📊 Akan diproses pelunasan untuk ${jumlahAnggota} anggota:\n\n` +
+        `💸 Total nominal: Rp. ${totalNominal.toLocaleString()}\n\n` +
+        `Lanjutkan proses pelunasan?`
+      );
+
+      if (!konfirmasi) {
+        alert('❌ Pelunasan dibatalkan.');
+        return;
+      }
+
+      overlay.style.display = 'flex';
+      btn.disabled = true;
+
+      let berhasil = 0;
+      let totalBerhasil = 0;
+
+      for (const cb of selected) {
+        const no_id = cb.dataset.id;
+        const nominal = parseInt(cb.dataset.nominal || '0');
+
+        const { data: saldoData, error: saldoError } = await supabase
+          .from('tb_saldo')
+          .select('jumlah_kiriman')
+          .eq('no_id', no_id)
+          .single();
+
+        if (saldoError || !saldoData) continue;
+
+        const saldoAwal = parseInt(saldoData.jumlah_kiriman || '0');
+
+        if (saldoAwal >= nominal) {
+          const saldoBaru = saldoAwal - nominal;
+
+          await supabase
+            .from('tb_saldo')
+            .update({ jumlah_kiriman: saldoBaru })
+            .eq('no_id', no_id);
+
+          await supabase
+            .from('tb_massal')
+            .update({ status: 'LUNAS' })
+            .eq('no_id', no_id);
+
+          berhasil++;
+          totalBerhasil += nominal;
+        }
+      }
+
+      alert(
+        `✅ Pelunasan selesai.\n\n` +
+        `🧮 Total anggota dipilih: ${jumlahAnggota}\n` +
+        `✅ Berhasil diproses: ${berhasil} anggota\n` +
+        `💸 Total nominal berhasil: Rp. ${totalBerhasil.toLocaleString()}`
+      );
+
+      await ambilDataMassal();
+      overlay.style.display = 'none';
+      btn.disabled = false;
+    });
+
+    ambilDataMassal();
+  </script>
+
+</body>
+</html>

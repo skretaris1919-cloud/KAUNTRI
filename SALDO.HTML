@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dashboard Saldo Santri</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #fdfdfd;
+    }
+
+    .filter-box {
+      margin-bottom: 20px;
+      padding: 12px;
+      background-color: #f0f4f8;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    .filter-box h3 {
+      margin-bottom: 10px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .filter-row select,
+    .filter-row input[type="date"],
+    .filter-row input[type="text"] {
+      padding: 6px 8px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      min-width: 160px;
+    }
+
+    .filter-row input[readonly] {
+      background-color: #e8f5e9;
+      font-weight: bold;
+    }
+
+    .btn-filter,
+    .btn-unfilter {
+      padding: 6px 12px;
+      font-size: 14px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .btn-unfilter {
+      background-color: #f44336;
+    }
+
+    #tabel-saldo {
+      margin-top: 24px;
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      table-layout: auto;
+    }
+
+    #tabel-saldo th,
+    #tabel-saldo td {
+      padding: 4px 6px;
+      border: 1px solid #ccc;
+      text-align: left;
+      vertical-align: middle;
+      word-break: break-word;
+    }
+
+    #tabel-saldo thead {
+      background-color: #f8f8f8;
+    }
+
+    #tabel-saldo tbody tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+
+    #tabel-saldo tbody tr:nth-child(odd) {
+      background-color: #ffffff;
+    }
+
+    #tabel-saldo img {
+      max-height: 40px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ✅ Kontainer Filter -->
+  <div class="filter-box">
+    <h3>FILTER</h3>
+    <div class="filter-row">
+      <select id="judul-kolom">
+        <option value="">Pilih Judul Kolom</option>
+      </select>
+
+      <select id="detail-kolom">
+        <option value="">Pilih Detail</option>
+      </select>
+
+      <input type="date" id="tanggal-awal" />
+      <input type="date" id="tanggal-akhir" />
+
+      <input type="text" id="total-kiriman" placeholder="Saldo Kiriman" readonly />
+      <input type="text" id="total-tabungan" placeholder="Saldo Tabungan" readonly />
+      <input type="text" id="total-akumulatif" placeholder="Saldo Akumulatif" readonly />
+
+      <button class="btn-filter">Filter</button>
+      <button class="btn-unfilter">Unfilter</button>
+    </div>
+  </div>
+
+  <!-- ✅ Tabel Saldo -->
+  <table id="tabel-saldo">
+    <thead>
+      <tr>
+        <th>No ID</th>
+        <th>Nama</th>
+        <th>Alamat</th>
+        <th>Nama Kamar</th>
+        <th>Jumlah Kiriman</th>
+        <th>Saldo Tabungan</th>
+        <th>Saldo Akhir</th>
+        <th>Limit Harian</th>
+        <th>Makan</th>
+        <th>Foto</th>
+        <th>Waktu</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <!-- ✅ Script Supabase + Filter Dinamis + Akumulasi -->
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const supabase = createClient(
+      'https://brnqpdvtninzyqqwhmfj.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJybnFwZHZ0bmluenlxcXdobWZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc1NjU3OTQsImV4cCI6MjA3MzE0MTc5NH0.6u2P5ANnDV1237hEY73M0OHRDftwc3-G0JbRx44YcZc'
+    );
+
+    const kolomValid = [
+      'no_id', 'nama', 'alamat', 'nama_kamar',
+      'jumlah_kiriman', 'saldo_tabungan', 'saldo_akhir',
+      'limit_harian', 'makan', 'foto_url', 'waktu'
+    ];
+
+    const judulKolom = document.getElementById('judul-kolom');
+    const detailKolom = document.getElementById('detail-kolom');
+
+    const totalKiriman = document.getElementById('total-kiriman');
+    const totalTabungan = document.getElementById('total-tabungan');
+    const totalAkumulatif = document.getElementById('total-akumulatif');
+
+    // Isi listbox Judul Kolom
+    kolomValid.forEach(kolom => {
+      const option = document.createElement('option');
+      option.value = kolom;
+      option.textContent = kolom.replace(/_/g, ' ').toUpperCase();
+      judulKolom.appendChild(option);
+    });
+
+    // Isi listbox Detail berdasarkan kolom terpilih
+    judulKolom.addEventListener('change', async () => {
+      const kolomDipilih = judulKolom.value;
+      detailKolom.innerHTML = '<option value="">Memuat...</option>';
+
+      if (!kolomDipilih) return;
+
+      const { data, error } = await supabase
+        .from('tb_saldo')
+        .select(kolomDipilih);
+
+      if (error) {
+        detailKolom.innerHTML = '<option value="">Gagal ambil data</option>';
+        console.error(error);
+        return;
+      }
+
+      const nilaiUnik = [...new Set(data.map(item => item[kolomDipilih]))];
+      detailKolom.innerHTML = '<option value="">Pilih Detail</option>';
+      nilaiUnik.forEach(nilai => {
+        const option = document.createElement('option');
+        option.value = nilai;
+        option.textContent = nilai || '(Kosong)';
+        detailKolom.appendChild(option);
+      });
+    });
+
+async function prosesTransaksiMassal() {
+  const nominalInput = document.getElementById('nominal-massal').value.trim();
+  const nominal = parseInt(nominalInput);
+
+  if (!nominal || isNaN(nominal) || nominal <= 0) {
+    alert('⚠️ Nominal tidak valid.');
+    return;
+  }
+
+  // ✅ Ambil semua data dari tb_saldo
+  const { data: santri, error } = await supabase
+    .from('tb_saldo')
+    .select('no_id, jumlah_kiriman');
+
+  if (error) {
+    alert('❌ Gagal ambil data saldo: ' + error.message);
+    return;
+  }
+
+  const jumlahAnggota = santri.length;
+  const totalUang = nominal * jumlahAnggota;
+
+  const konfirmasi = confirm(
+    `⚠️ Akan diproses transaksi massal untuk ${jumlahAnggota} anggota.\n` +
+    `💸 Total nominal: Rp. ${totalUang.toLocaleString()}\n\n` +
+    `Lanjutkan proses pengurangan saldo kiriman?`
+  );
+
+  if (!konfirmasi) return;
+
+  // ✅ Siapkan batch update
+  const updates = santri.map(item => ({
+    no_id: item.no_id,
+    jumlah_kiriman: Math.max(0, (item.jumlah_kiriman || 0) - nominal)
+  }));
+
+  // ✅ Jalankan update satu per satu
+  for (const update of updates) {
+    const { error: updateError } = await supabase
+      .from('tb_saldo')
+      .update({ jumlah_kiriman: update.jumlah_kiriman })
+      .eq('no_id', update.no_id);
+
+    if (updateError) {
+      console.error(`❌ Gagal update ID ${update.no_id}:`, updateError.message);
+    }
+  }
+
+  alert(`✅ Transaksi massal berhasil!\nSemua saldo kiriman telah dikurangi Rp. ${nominal.toLocaleString()}`);
+  ambilDataSaldo(); // ✅ Refresh tabel
+}
+
+    // Ambil dan tampilkan data saldo + hitung total
+    async function ambilDataSaldo(filter = {}) {
+      let query = supabase.from('tb_saldo').select('*').order('waktu', { ascending: false });
+
+      if (filter.kolom && filter.detail) {
+        query = query.eq(filter.kolom, filter.detail);
+      }
+
+      if (filter.tanggal_awal) {
+        query = query.gte('waktu', filter.tanggal_awal);
+      }
+
+      if (filter.tanggal_akhir) {
+        query = query.lte('waktu', filter.tanggal_akhir);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('❌ Gagal ambil data:', error.message);
+        return;
+      }
+
+      const tbody = document.querySelector('#tabel-saldo tbody');
+      tbody.innerHTML = '';
+
+      let totalKirimanVal = 0;
+      let totalTabunganVal = 0;
+      let totalAkumulatifVal = 0;
+
+      data.forEach(item => {
+        totalKirimanVal += parseInt(item.jumlah_kiriman || 0);
+        totalTabunganVal += parseInt(item.saldo_tabungan || 0);
+        totalAkumulatifVal += parseInt(item.saldo_akhir || 0);
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${item.no_id}</td>
+          <td>${item.nama}</td>
+          <td>${item.alamat}</td>
+          <td>${item.nama_kamar}</td>
+          <td>Rp. ${parseInt(item.jumlah_kiriman || 0).toLocaleString()}</td>
+          <td>Rp. ${parseInt(item.saldo_tabungan || 0).toLocaleString()}</td>
+          <td>Rp. ${parseInt(item.saldo_akhir || 0).toLocaleString()}</td>
+          <td>Rp. ${parseInt(item.limit_harian || 0).toLocaleString()}</td>
+          <td>${item.makan}</td>
+          <td><img src="${item.foto_url}" width="60" /></td>
+          <td>${new Date(item.waktu).toLocaleString()}</td>
+        `;
+        tbody.appendChild(row);
+      });
+
+      // ✅ Tampilkan total ke form
+      totalKiriman.value = 'Rp. ' + totalKirimanVal.toLocaleString();
+      totalTabungan.value = 'Rp. ' + totalTabunganVal.toLocaleString();
+      totalAkumulatif.value = 'Rp. ' + totalAkumulatifVal.toLocaleString();
+    }
+
+    // ✅ Tombol Filter
+    document.querySelector('.btn-filter').addEventListener('click', () => {
+      const kolom = judulKolom.value;
+      const detail = detailKolom.value;
+      const tanggal_awal = document.getElementById('tanggal-awal').value;
+      const tanggal_akhir = document.getElementById('tanggal-akhir').value;
+
+      ambilDataSaldo({ kolom, detail, tanggal_awal, tanggal_akhir });
+    });
+
+    // ✅ Tombol Unfilter
+    document.querySelector('.btn-unfilter').addEventListener('click', () => {
+      judulKolom.value = '';
+      detailKolom.innerHTML = '<option value="">Pilih Detail</option>';
+      document.getElementById('tanggal-awal').value = '';
+      document.getElementById('tanggal-akhir').value = '';
+      ambilDataSaldo(); // Ambil semua data tanpa filter
+    });
+
+    // ✅ Load awal saat halaman dibuka
+    ambilDataSaldo();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Buat Kartu Kauntri</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f5faff;
+      margin: 0;
+      padding: 24px;
+    }
+
+    .judul-utama {
+      text-align: center;
+      padding: 12px 0;
+      margin-bottom: 16px;
+      background: #eaf4ff;
+      border-bottom: 2px solid #ccc;
+    }
+
+    .judul-utama h2 {
+      font-size: 28px;
+      font-weight: bold;
+      color: #333;
+      margin: 0;
+    }
+
+    .kontainer-kauntri {
+      background: #f0f8ff;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    .form-group label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 6px 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .btn-aksi {
+      flex: 1;
+      padding: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      background-color: #0077b6;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .btn-aksi:hover {
+      background-color: #005f8e;
+    }
+
+    .kartu-atm {
+      width: 85.6mm;
+      height: 53.98mm;
+      max-width: 100%;
+      background: linear-gradient(135deg, #0077b6, #00b4d8);
+      color: white;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      margin: 16px auto 0;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .atm-header-kauntri {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 20px;
+      font-weight: bold;
+      color: white;
+      letter-spacing: 2px;
+    }
+
+    #qrcode {
+      background: white;
+      padding: 4px;
+      border-radius: 4px;
+    }
+
+    .atm-nama {
+      font-size: 20px;
+      font-weight: bold;
+      padding-left: 16px;
+    }
+
+    .overlay-waiting {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      font-size: 24px;
+      font-weight: bold;
+      color: white;
+      backdrop-filter: blur(2px);
+    }
+
+    .overlay-hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Judul -->
+  <div class="judul-utama">
+    <h2>🪪 BUAT KARTU KAUNTRI</h2>
+  </div>
+
+  <!-- Kontainer -->
+  <div class="kontainer-kauntri">
+    <div class="form-group">
+      <label for="no-id">Masukkan No ID Santri</label>
+      <input type="text" id="no-id" placeholder="Contoh: SAN001" />
+    </div>
+
+    <!-- Tombol Aksi -->
+    <div class="button-row">
+      <button class="btn-aksi" id="btn-qrcode">🔧 BUAT QRCODE</button>
+      <button class="btn-aksi" id="btn-simpan">💾 SIMPAN KARTU</button>
+    </div>
+
+    <!-- Kartu ATM -->
+    <div class="kartu-atm" id="kartu-atm">
+      <div class="atm-header-kauntri">KAUNTRI</div>
+      <canvas id="qrcode" width="80" height="80"></canvas>
+      <div class="atm-nama" id="atm-nama">—</div>
+    </div>
+  </div>
+
+  <!-- Overlay Waiting -->
+  <div class="overlay-waiting overlay-hidden" id="overlay-waiting">
+    ⏳ Menunggu QR Code…
+  </div>
+
+  <!-- Script Modular -->
+  <script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+  import QRCode from 'https://cdn.jsdelivr.net/npm/qrcode/+esm';
+  import html2canvas from 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/+esm';
+
+  const supabase = createClient(
+    'https://brnqpdvtninzyqqwhmfj.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJybnFwZHZ0bmluenlxcXdobWZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc1NjU3OTQsImV4cCI6MjA3MzE0MTc5NH0.6u2P5ANnDV1237hEY73M0OHRDftwc3-G0JbRx44YcZc'
+  );
+
+  let currentID = '';
+  const overlay = document.getElementById('overlay-waiting');
+
+  document.getElementById('btn-qrcode').addEventListener('click', async () => {
+    const id = document.getElementById('no-id').value.trim();
+    const canvas = document.getElementById('qrcode');
+    const namaEl = document.getElementById('atm-nama');
+
+    overlay.classList.remove('overlay-hidden');
+    overlay.textContent = '⏳ Menunggu QR Code…';
+    namaEl.textContent = '—';
+    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+
+    if (!id) {
+      alert('⚠️ Masukkan No ID terlebih dahulu.');
+      overlay.textContent = '❌ ID kosong.';
+      setTimeout(() => overlay.classList.add('overlay-hidden'), 1500);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from('tb_saldo')
+      .select('*')
+      .eq('no_id', id)
+      .limit(1);
+
+    if (error || !data || data.length === 0) {
+      overlay.textContent = '❌ Data tidak ditemukan.';
+      setTimeout(() => overlay.classList.add('overlay-hidden'), 1500);
+      return;
+    }
+
+    const row = data[0];
+    currentID = row.no_id;
+    namaEl.textContent = row.nama;
+
+    QRCode.toCanvas(canvas, row.no_id, { width: 80 }, function (err) {
+      if (err) {
+        console.error(err);
+        overlay.textContent = '❌ Gagal render QR.';
+      } else {
+        overlay.textContent = '✅ QR Code siap disimpan.';
+      }
+      setTimeout(() => overlay.classList.add('overlay-hidden'), 1200);
+    });
+  });
+
+  document.getElementById('btn-simpan').addEventListener('click', () => {
+    const kartu = document.getElementById('kartu-atm');
+    html2canvas(kartu).then((canvas) => {
+      canvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${currentID || 'santri'}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }, 'image/png');
+    });
+  });
+</script>
