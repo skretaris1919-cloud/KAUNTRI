@@ -33,7 +33,8 @@
 
     .filter-row select,
     .filter-row input[type="date"],
-    .filter-row input[type="text"] {
+    .filter-row input[type="text"],
+    .filter-row input[list] {
       padding: 6px 8px;
       font-size: 14px;
       border: 1px solid #ccc;
@@ -106,9 +107,8 @@
         <option value="">Pilih Judul Kolom</option>
       </select>
 
-      <select id="detail-kolom">
-        <option value="">Pilih Detail</option>
-      </select>
+      <input list="detail-kolom" id="detail-kolom-input" name="detailKolom" placeholder="Pilih atau ketik detail" />
+      <datalist id="detail-kolom"></datalist>
 
       <input type="date" id="tanggal-awal" />
       <input type="date" id="tanggal-akhir" />
@@ -158,7 +158,8 @@
     ];
 
     const judulKolom = document.getElementById('judul-kolom');
-    const detailKolom = document.getElementById('detail-kolom');
+    const detailKolomList = document.getElementById('detail-kolom');
+    const detailKolomInput = document.getElementById('detail-kolom-input');
 
     const totalKiriman = document.getElementById('total-kiriman');
     const totalTabungan = document.getElementById('total-tabungan');
@@ -172,10 +173,10 @@
       judulKolom.appendChild(option);
     });
 
-    // Isi listbox Detail berdasarkan kolom terpilih
+    // Isi datalist Detail berdasarkan kolom terpilih
     judulKolom.addEventListener('change', async () => {
       const kolomDipilih = judulKolom.value;
-      detailKolom.innerHTML = '<option value="">Memuat...</option>';
+      detailKolomList.innerHTML = '';
 
       if (!kolomDipilih) return;
 
@@ -184,72 +185,17 @@
         .select(kolomDipilih);
 
       if (error) {
-        detailKolom.innerHTML = '<option value="">Gagal ambil data</option>';
         console.error(error);
         return;
       }
 
       const nilaiUnik = [...new Set(data.map(item => item[kolomDipilih]))];
-      detailKolom.innerHTML = '<option value="">Pilih Detail</option>';
       nilaiUnik.forEach(nilai => {
         const option = document.createElement('option');
-        option.value = nilai;
-        option.textContent = nilai || '(Kosong)';
-        detailKolom.appendChild(option);
+        option.value = nilai || '(Kosong)';
+        detailKolomList.appendChild(option);
       });
     });
-
-async function prosesTransaksiMassal() {
-  const nominalInput = document.getElementById('nominal-massal').value.trim();
-  const nominal = parseInt(nominalInput);
-
-  if (!nominal || isNaN(nominal) || nominal <= 0) {
-    alert('⚠️ Nominal tidak valid.');
-    return;
-  }
-
-  // ✅ Ambil semua data dari tb_saldo
-  const { data: santri, error } = await supabase
-    .from('tb_saldo')
-    .select('no_id, jumlah_kiriman');
-
-  if (error) {
-    alert('❌ Gagal ambil data saldo: ' + error.message);
-    return;
-  }
-
-  const jumlahAnggota = santri.length;
-  const totalUang = nominal * jumlahAnggota;
-
-  const konfirmasi = confirm(
-    `⚠️ Akan diproses transaksi massal untuk ${jumlahAnggota} anggota.\n` +
-    `💸 Total nominal: Rp. ${totalUang.toLocaleString()}\n\n` +
-    `Lanjutkan proses pengurangan saldo kiriman?`
-  );
-
-  if (!konfirmasi) return;
-
-  // ✅ Siapkan batch update
-  const updates = santri.map(item => ({
-    no_id: item.no_id,
-    jumlah_kiriman: Math.max(0, (item.jumlah_kiriman || 0) - nominal)
-  }));
-
-  // ✅ Jalankan update satu per satu
-  for (const update of updates) {
-    const { error: updateError } = await supabase
-      .from('tb_saldo')
-      .update({ jumlah_kiriman: update.jumlah_kiriman })
-      .eq('no_id', update.no_id);
-
-    if (updateError) {
-      console.error(`❌ Gagal update ID ${update.no_id}:`, updateError.message);
-    }
-  }
-
-  alert(`✅ Transaksi massal berhasil!\nSemua saldo kiriman telah dikurangi Rp. ${nominal.toLocaleString()}`);
-  ambilDataSaldo(); // ✅ Refresh tabel
-}
 
     // Ambil dan tampilkan data saldo + hitung total
     async function ambilDataSaldo(filter = {}) {
@@ -299,7 +245,7 @@ async function prosesTransaksiMassal() {
           <td><img src="${item.foto_url}" width="60" /></td>
           <td>${new Date(item.waktu).toLocaleString()}</td>
         `;
-        tbody.appendChild(row);
+                tbody.appendChild(row);
       });
 
       // ✅ Tampilkan total ke form
@@ -311,7 +257,7 @@ async function prosesTransaksiMassal() {
     // ✅ Tombol Filter
     document.querySelector('.btn-filter').addEventListener('click', () => {
       const kolom = judulKolom.value;
-      const detail = detailKolom.value;
+      const detail = detailKolomInput.value.trim(); // ambil dari input manual atau list
       const tanggal_awal = document.getElementById('tanggal-awal').value;
       const tanggal_akhir = document.getElementById('tanggal-akhir').value;
 
@@ -321,7 +267,8 @@ async function prosesTransaksiMassal() {
     // ✅ Tombol Unfilter
     document.querySelector('.btn-unfilter').addEventListener('click', () => {
       judulKolom.value = '';
-      detailKolom.innerHTML = '<option value="">Pilih Detail</option>';
+      detailKolomInput.value = '';
+      detailKolomList.innerHTML = '';
       document.getElementById('tanggal-awal').value = '';
       document.getElementById('tanggal-akhir').value = '';
       ambilDataSaldo(); // Ambil semua data tanpa filter
