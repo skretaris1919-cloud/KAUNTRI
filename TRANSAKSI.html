@@ -12,190 +12,157 @@
       padding: 0;
     }
 
-
     .judul-box {
-      font-size: 24px;
+      font-size: 36px;
       font-weight: bold;
-      margin-bottom: 24px;
+      margin-bottom: 16px;
       text-align: center;
       color: #333;
+      margin-bottom: 4px;
     }
 
-.box-pasangan {
-  display: flex;
-  gap: 32px;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-bottom: 32px;
+.form-group input:focus {
+  outline: none;
+  background-color: #e3f2fd;         /* ⬅️ biru pudar */
+  color: #0d6efd;                    /* ⬅️ biru terang */
+  font-weight: bold;                /* ⬅️ teks tebal */
+  border: 2px solid #0d6efd;        /* ⬅️ garis biru terang */
+  box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.3); /* ⬅️ glow biru */
+  transition: all 0.2s ease;
 }
 
-.box-no-id {
-  flex: 2; /* ⬅️ Lebih lebar dari box kedua */
-  background-color: #fff8e1;
-  border: 2px solid #ffc107;
-  border-radius: 12px;
-  padding: 20px;
-  box-sizing: border-box;
-  max-width: 600px;
-  width: 100%;
-}
-
-.box-no-id.kedua {
-  flex: 1; /* ⬅️ Lebih sempit */
-  background-color: #e1f5fe;
-  border: 2px solid #03a9f4;
-  border-radius: 12px;
-  padding: 20px;
-  box-sizing: border-box;
-  max-width: 400px;
-  width: 100%;
-}
-
-.gambar-area {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.gambar-penuh {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain; /* ⬅️ Ini yang bikin gambar tetap proporsional */
-  border-radius: 8px;
-}  
-
-.box-no-id.kedua.gambar-saja {
-  display: flex;
-  flex-direction: column; /* ⬅️ gambar di atas, tombol di bawah */
-  align-items: center;
-  justify-content: flex-start;
-}
-
-.aksi-horizontal {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 16px;
-  flex-wrap: wrap;
-}
-
-.btn-aksi {
-  padding: 10px 16px;
-  font-size: 16px;
+textarea:focus,
+select:focus {
+  background-color: #e3f2fd;
+  color: #0d6efd;
   font-weight: bold;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  min-width: 140px;
-  transition: background-color 0.3s ease;
+  border: 2px solid #0d6efd;
+  box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.3);
+  transition: all 0.2s ease;
 }
 
-/* ✅ Transaksi Massal */
-.btn-aksi.edit {
-  background-color: #28a745;
+.judul-container {
+  background: linear-gradient(to right, #2e7d32, #a5d6a7);
+  padding: 32px 0; /* ⬅️ padding horizontal dihapus */
+  margin: 0 auto 24px;
+  width: 100%; /* ⬅️ ganti dari 100vw */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   color: white;
-  transition: background-color 0.3s ease;
-}
-.btn-aksi.edit:hover {
-  background-color: #218838;
-}
-
-/* ✅ Input Saldo */
-.btn-aksi.input-saldo {
-  background-color: #ffc107;
-  color: #333;
-}
-.btn-aksi.input-saldo:hover {
-  background-color: #e0a800;
+  text-align: center;
+  border-radius: 0;
+  padding-top: 4px;
 }
 
-/* ✅ Cetak Kartu */
-.btn-aksi.cetak-kartu {
-  background-color: #17a2b8;
-  color: white;
-  transition: background-color 0.3s ease;
-}
-.btn-aksi.cetak-kartu:hover {
-  background-color: #138496;
+.judul-flex {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px; /* ⬅️ jarak antara logo dan teks */
 }
 
-  .no-id-grid {
-      display: flex;
-      flex-direction: row;
-      gap: 24px;
-      align-items: flex-start;
+.logo-kepang {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  margin-right: -4px;
+  align-self: flex-end; /* ⬅️ sejajarkan ke bawah baris */
+}
+
+    .btn-mulai {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      margin-bottom: 24px;
+    }
+    .btn-mulai:hover {
+      background-color: #218838;
     }
 
-    .form-area {
-      flex: 2;
-    }
-
-    .foto-area {
-      flex: 1;
-      display: flex;
+    .overlay-transaksi {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      backdrop-filter: blur(6px);
+      background-color: rgba(0, 0, 0, 0.3);
+      display: none;
       justify-content: center;
       align-items: center;
+      z-index: 999;
     }
 
-.foto-box {
-  width: 160px;
-  height: 160px;
-  border: 2px dashed #aaa;
-  border-radius: 8px;
-  background-color: #fefefe;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden; /* ⬅️ penting agar gambar tidak keluar */
+.subjudul-wrapper {
+  text-align: center; /* ⬅️ pastikan kontennya rata tengah */
+  margin-top: 8px;
 }
 
-.foto-box img {
+.subjudul-ramping {
+  font-size: 15px;
+  font-weight: 500;
+  color: white;
+  margin-top: -12px; /* ⬅️ lebih rapat lagi */
+  line-height: 1.2;   /* ⬅️ padatkan jarak antar baris */
+  text-align: center;
+}
+
+.transaksi-box {
+  position: relative;
+  background: linear-gradient(to left, #2e7d32, #a5d6a7);
+  padding: 32px;
+  box-shadow:
+    0 8px 16px rgba(0,0,0,0.25),   /* bayangan bawah dalam */
+    0 0 0 2px rgba(255,255,255,0.1), /* garis tepi terang */
+    inset 0 1px 2px rgba(255,255,255,0.2); /* efek cahaya dalam */
   width: 100%;
-  height: 100%;
-  object-fit: cover; /* ⬅️ ini yang bikin gambar pas dan proporsional */
-  border-radius: 8px;
-  display: block;
+  max-width: 960px;
+  margin: auto;
+  color: white;
+  border-radius: 16px;
+  transition: box-shadow 0.3s ease;
 }
 
-    .box-no-id label {
-      font-size: 16px;
-      font-weight: bold;
-      margin-bottom: 3px;
-      display: block;
-      color: #333;
+.judul-transaksi {
+  font-size: 32px;
+  font-weight: bold;
+  margin-top: 4px;         /* ⬅️ jarak atas dipersempit */
+  margin-bottom: 20px;
+  text-align: center;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  letter-spacing: 1px;
+}
+
+.btn-tutup {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background-color: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: white;
+}
+    .btn-tutup:hover {
+      background-color: #c82333;
     }
 
-    .box-no-id input {
-      font-size: 20px;
-      font-weight: bold;
-      padding: 14px 16px;
-      width: 100%;
-      border-radius: 8px;
-      border: 2px solid #ccc;
-      box-sizing: border-box;
-    }
-
+    .box-no-id,
     .box-form-horizontal,
     .box-form-horizontal.kedua {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
       background-color: white;
       padding: 20px;
       border-radius: 10px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      overflow-x: auto;
-      margin-top: 12px;
     }
 
-    .box-form-horizontal .form-group,
-    .box-form-horizontal.kedua .form-group {
-      flex: 1 1 150px;
-      display: flex;
-      flex-direction: column;
-      min-width: 150px;
+    .form-group {
+      margin-bottom: 12px;
     }
 
     .form-group label {
@@ -203,6 +170,7 @@
       margin-bottom: 6px;
       font-size: 14px;
       color: #333;
+      display: block;
     }
 
     .form-group input {
@@ -210,11 +178,8 @@
       border-radius: 6px;
       border: 1px solid #ccc;
       font-size: 14px;
+      width: 100%;
       box-sizing: border-box;
-    }
-
-    .form-group input[readonly] {
-      background-color: #e9ecef;
     }
 
     .btn-simpan {
@@ -226,36 +191,128 @@
       font-size: 16px;
       cursor: pointer;
       transition: background-color 0.3s ease;
-      margin-top: 24px;
       width: 100%;
     }
-
-input.negatif {
-  color: red;
-  font-weight: bold;
-}
-   .btn-simpan:hover {
+    .btn-simpan:hover {
       background-color: #ff5722;
     }
-.btn-simpan:focus {
-  background-color: #ff5722; /* 🟠 sama seperti hover */
-  outline: none; /* opsional, hilangkan garis biru default */
+
+    .gambar-area {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .gambar-penuh {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+
+    .aksi-horizontal {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+.btn-aksi {
+  padding: 10px 16px;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  min-width: 140px;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15); /* ⬅️ bayangan awal */
+}
+
+/* Tombol Edit */
+.btn-aksi.edit {
+  background-color: #28a745;
+  color: white;
+}
+.btn-aksi.edit:hover {
+  background-color: #218838; /* ⬅️ versi lebih gelap */
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2); /* ⬅️ efek 3D saat hover */
+}
+
+/* Tombol Input Saldo */
+.btn-aksi.input-saldo {
+  background-color: #ffc107;
+  color: #333;
+}
+.btn-aksi.input-saldo:hover {
+  background-color: #e0a800;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+/* Tombol Cetak Kartu */
+.btn-aksi.cetak-kartu {
+  background-color: #17a2b8;
+  color: white;
+}
+.btn-aksi.cetak-kartu:hover {
+  background-color: #138496;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.grid-3-kolom {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.kolom {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.foto-box {
+  width: 100%;
+  max-width: 160px;
+  height: 160px;
+  margin: 0 auto 16px;
+  border: 2px dashed #aaa;
+  border-radius: 8px;
+  background-color: #fefefe;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.foto-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
 }
 
 .table-wrapper {
   width: 100%;
   max-height: 400px;
-  overflow-y: auto;
+  overflow: auto;
   border: 1px solid #ccc;
   border-radius: 8px;
   margin-top: 10px;
-  margin-bottom: 24px
+  margin-bottom: 24px;
 }
 
 #tabel-transaksi {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
+  table-layout: fixed; /* ⬅️ penting agar kolom tidak melebar */
 }
 
 #tabel-transaksi th,
@@ -264,12 +321,14 @@ input.negatif {
   border-bottom: 1px solid #ddd;
   text-align: left;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* ⬅️ potong teks panjang */
 }
 
 #tabel-transaksi thead {
   position: sticky;
   top: 0;
-  background-color: #e8f5e9; /* ⬅️ biru pudar */
+  background-color: #e8f5e9;
   z-index: 1;
 }
 
@@ -281,117 +340,115 @@ input.negatif {
   background-color: #e6f7ff;
 }
 
-.kasir-wrapper {
-  margin-top: 0;
-  padding-top: 0;
+#jumlah-kiriman {
+  font-size: 18px;              /* ⬅️ lebih besar */
+  font-weight: 600;             /* ⬅️ agak tebal */
+  color: #ffc107;               /* ⬅️ kuning terang */
+  background-color: #fffde7;    /* ⬅️ latar kuning pudar */
+  border: 2px solid #ffc107;
 }
 
-.judul-box {
-  margin-top: 0;
-  padding-top: 0;
+#saldo-terbaru {
+  font-size: 18px;
+  font-weight: 600;
+  color: #28a745;               /* ⬅️ hijau terang */
+  background-color: #e8f5e9;    /* ⬅️ latar hijau pudar */
+  border: 2px solid #28a745;
 }
 
-    @media (max-width: 768px) {
-      .no-id-grid {
-        flex-direction: column;
-      }
-    }
   </style>
 </head>
 <body>
 
-<div class="kasir-wrapper">
-  <h3 class="judul-box">FORM KASIR SANTRI</h3>
+<div class="judul-container">
+  <div class="judul-flex">
+    <img src="https://brnqpdvtninzyqqwhmfj.supabase.co/storage/v1/object/public/fotoku12/LAMBANG%20KEPANG%20PNG.png" alt="Logo Kepang" class="logo-kepang">
+    <div>
+      <h3 class="judul-box">KAUNTRI</h3>
+      <div class="subjudul-ramping">Kartu Keuangan Santri</div>
+    </div>
+  </div>
+</div>
 
-  <div class="box-pasangan">
-  <!-- 🔶 Box ID 1 -->
-  <div class="box-no-id">
-    <div class="no-id-grid">
-      <div class="form-area">
-        <div class="form-group">
-          <label for="no-id">No ID Santri</label>
-          <input type="text" id="no-id" placeholder="ID unik santri">
-        </div>
-        <div class="form-group">
-          <label for="nama">Nama</label>
-          <input type="text" id="nama" placeholder="Nama lengkap">
-        </div>
-        <div class="form-group">
-          <label for="nominal">Nominal</label>
-          <input type="text" id="nominal" placeholder="Masukkan nominal transaksi">
-        </div>
+<div style="text-align:center;">
+    <button id="btn-mulai" class="btn-mulai">🟢 MULAI TRANSAKSI</button>
+  </div>
 
-        <!-- ✅ Tombol SIMPAN tetap di dalam pasangan -->
-        <div class="form-group">
-          <button id="btn-simpan" class="btn-simpan">TRANSAKSI</button>
-        </div>
-      </div>
+  <!-- 🔷 Box Gambar Tetap Tampil -->
+  <div class="box-no-id kedua gambar-saja">
+    <div class="gambar-area">
+      <img src="https://tse4.mm.bing.net/th/id/OIP.Byp3baV39njGXGW04hOyNQHaE4?pid=Api&P=0&h=180" alt="Icon Transaksi" class="gambar-penuh">
+    </div>
+    <div class="aksi-horizontal">
+      <button class="btn-aksi edit" onclick="window.location.href='TRANSAKSIMASSAL.html'">💸 Transaksi massal</button>
+      <button class="btn-aksi input-saldo" onclick="window.location.href='INPUT%20SALDO.html'">💰 Input Saldo</button>
+      <button class="btn-aksi cetak-kartu" onclick="window.location.href='KARTU.html'">📄 Cetak Kartu</button>
+    </div>
+  </div>
 
-      <div class="foto-area">
+<!-- 🔶 Overlay Transaksi -->
+<div id="transaksi-overlay" class="overlay-transaksi">
+  <div class="transaksi-box">
+    <button class="btn-tutup" onclick="document.getElementById('transaksi-overlay').style.display='none'">❌ Tutup</button>
+    <h3 class="judul-transaksi">TRANSAKSI SANTRI</h3>
+    <div class="grid-3-kolom">
+      <!-- Kolom 1: Form Transaksi + Foto -->
+      <div class="kolom">
         <div class="foto-box">
           <img id="preview-foto" src="" alt="Foto Santri">
         </div>
+
+        <div class="form-group"><label for="no-id">No ID Santri</label><input type="text" id="no-id"></div>
+        <div class="form-group"><label for="nama">Nama</label><input type="text" id="nama"></div>
+        <div class="form-group"><label for="nominal">Nominal</label><input type="text" id="nominal"></div>
+        <div class="form-group"><button id="btn-simpan" class="btn-simpan">TRANSAKSI</button></div>
+      </div>
+
+      <!-- Kolom 2: Rincian 1 -->
+      <div class="kolom">
+        <div class="form-group"><label for="kamar">Nama Kamar</label><input type="text" id="kamar"></div>
+        <div class="form-group"><label for="alamat">Alamat</label><input type="text" id="alamat"></div>
+        <div class="form-group"><label for="jumlah">Saldo Kiriman</label><input type="text" id="jumlah"></div>
+        <div class="form-group"><label for="saldo-awal">Saldo Tabungan</label><input type="text" id="saldo-awal"></div>
+        <div class="form-group"><label for="saldo-akhir">Saldo Akhir</label><input type="text" id="saldo-akhir" readonly></div>
+      </div>
+
+      <!-- Kolom 3: Rincian 2 -->
+      <div class="kolom">
+        <div class="form-group"><label for="limit-harian">Limit Harian</label><input type="text" id="limit-harian"></div>
+        <div class="form-group"><label for="total-hari-ini">Total Hari Ini</label><input type="text" id="total-hari-ini"></div>
+        <div class="form-group"><label for="makan">Makan</label><input type="text" id="makan"></div>
+        <div class="form-group"><label for="jumlah-kiriman">Sisa Kiriman</label><input type="text" id="jumlah-kiriman" readonly></div>
+        <div class="form-group"><label for="saldo-terbaru">Saldo Terbaru</label><input type="text" id="saldo-terbaru" readonly></div>
       </div>
     </div>
   </div>
-
-<!-- 🔷 Box ID 2: Gambar Saja -->
-<div class="box-no-id kedua gambar-saja">
-  <div class="gambar-area">
-    <img src="https://tse4.mm.bing.net/th/id/OIP.Byp3baV39njGXGW04hOyNQHaE4?pid=Api&P=0&h=180" alt="Icon Transaksi" class="gambar-penuh">
-  </div>
-
-  <!-- ✅ Tombol horizontal di bawah gambar -->
-  <div class="aksi-horizontal">
-    <button class="btn-aksi edit" onclick="window.location.href='TRANSAKSIMASSAL.html'">💸 Transaksi massal</button>
-    <button class="btn-aksi input-saldo" onclick="window.location.href='INPUT%20SALDO.html'">💰 Input Saldo</button>
-    <button class="btn-aksi cetak-kartu" onclick="window.location.href='KARTU.html'">📄 Cetak Kartu</button>
-  </div>
 </div>
-
-    <div class="box-form-horizontal">
-      <div class="form-group"><label for="kamar">Nama Kamar</label><input type="text" id="kamar"></div>
-      <div class="form-group"><label for="alamat">Alamat</label><input type="text" id="alamat"></div>
-      <div class="form-group"><label for="jumlah">Saldo kiriman</label><input type="text" id="jumlah"></div>
-      <div class="form-group"><label for="saldo-awal">Saldo Tabungan</label><input type="text" id="saldo-awal"></div>
-      <div class="form-group"><label for="saldo-akhir">Saldo Akhir</label><input type="text" id="saldo-akhir" readonly></div>
-    </div>
-
-    <div class="box-form-horizontal kedua">
-      <div class="form-group"><label for="limit-harian">Limit Harian</label><input type="text" id="limit-harian"></div>
-      <div class="form-group"><label for="total-hari-ini">Total Hari Ini</label><input type="text" id="total-hari-ini"></div>
-      <div class="form-group"><label for="makan">Makan</label><input type="text" id="makan"></div>
-      <div class="form-group"><label for="jumlah-kiriman">Sisa Kiriman</label><input type="text" id="jumlah-kiriman" readonly></div>
-      <div class="form-group"><label for="saldo-terbaru">Saldo Terbaru</label><input type="text" id="saldo-terbaru" readonly></div>
-    </div>
-  </div>
 
 <div class="table-wrapper">
-<table id="tabel-transaksi">
-  <thead>
-    <tr>
-      <th>No ID</th>
-      <th>Nama</th>
-      <th>Kamar</th>
-      <th>Alamat</th>
-      <th>Jumlah</th>
-      <th>Nominal</th>
-      <th>Saldo Awal</th>
-      <th>Saldo Akhir</th>
-      <th>Limit Harian</th>
-      <th>Makan</th>
-      <th>Jumlah Kiriman</th>
-      <th>Saldo Terbaru</th>
-      <th>Waktu</th>
-      <th>Created By</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
-      <!-- Data akan dimasukkan lewat JS -->
-    </tbody>
+  <table id="tabel-transaksi">
+    <thead>
+      <tr>
+        <th>No ID</th>
+        <th>Nama</th>
+        <th>Kamar</th>
+        <th>Alamat</th>
+        <th>Jumlah</th>
+        <th>Nominal</th>
+        <th>Saldo Awal</th>
+        <th>Saldo Akhir</th>
+        <th>Limit Harian</th>
+        <th>Makan</th>
+        <th>Jumlah Kiriman</th>
+        <th>Saldo Terbaru</th>
+        <th>Waktu</th>
+        <th>Created By</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
   </table>
 </div>
+
 
 <script type="module">
   import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
@@ -399,6 +456,22 @@ input.negatif {
   const supabaseUrl = 'https://brnqpdvtninzyqqwhmfj.supabase.co';
   const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJybnFwZHZ0bmluenlxcXdobWZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc1NjU3OTQsImV4cCI6MjA3MzE0MTc5NH0.6u2P5ANnDV1237hEY73M0OHRDftwc3-G0JbRx44YcZc'; // 🔒 pastikan aman
   const supabase = createClient(supabaseUrl, supabaseKey);
+
+
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('btn-mulai').addEventListener('click', function() {
+    document.querySelector('.overlay-transaksi').style.display = 'flex';
+
+    // ⬇️ Fokus input setelah overlay muncul
+    setTimeout(() => {
+      const inputID = document.getElementById('no-id');
+      if (inputID) {
+        inputID.focus();
+        inputID.select();
+      }
+    }, 100);
+  });
+});
 
   // 🔢 Format visual Rp
 function formatRupiah(angka) {
