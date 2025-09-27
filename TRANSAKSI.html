@@ -42,20 +42,15 @@ select:focus {
 }
 
 .judul-container {
-  position: fixed; /* ⬅️ Tetap di posisi atas layar */
-  top: 0;           /* ⬅️ Menempel di bagian atas */
-  left: 0;
-  right: 0;
-  z-index: 999;     /* ⬅️ Pastikan tampil di atas elemen lain */
-  
   background: linear-gradient(to right, #2e7d32, #a5d6a7);
-  padding: 4px 0;   /* ⬅️ Padding atas saja */
-  margin: 0 auto;
-  width: 100%;
+  padding: 32px 0; /* ⬅️ padding horizontal dihapus */
+  margin: 0 auto 24px;
+  width: 100%; /* ⬅️ ganti dari 100vw */
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   color: white;
   text-align: center;
   border-radius: 0;
+  padding-top: 4px;
 }
 
 .judul-flex {
@@ -83,7 +78,6 @@ select:focus {
       cursor: pointer;
       transition: background-color 0.3s ease;
       margin-bottom: 24px;
-      margin-top: 120px;
     }
     .btn-mulai:hover {
       background-color: #218838;
@@ -374,11 +368,14 @@ select:focus {
 
 <div class="judul-container">
   <div class="judul-flex">
-    <img src="https://brnqpdvtninzyqqwhmfj.supabase.co/storage/v1/object/public/fotoku12/LAMBANG.jpg" alt="Logo Kepang" class="logo-kepang">
+    <img src="https://brnqpdvtninzyqqwhmfj.supabase.co/storage/v1/object/public/fotoku12/LAMBANG%20KEPANG%20PNG.png" alt="Logo Kepang" class="logo-kepang">
     <div>
       <h3 class="judul-box">KAUNTRI</h3>
       <div class="subjudul-ramping">Kartu Keuangan Santri</div>
     </div>
+<div style="text-align:center;">
+    <button id="btn-mulai" class="btn-mulai">🟢 MULAI TRANSAKSI</button>
+  </div>
   </div>
 </div>
 
@@ -392,9 +389,9 @@ select:focus {
       <img src="https://tse4.mm.bing.net/th/id/OIP.Byp3baV39njGXGW04hOyNQHaE4?pid=Api&P=0&h=180" alt="Icon Transaksi" class="gambar-penuh">
     </div>
     <div class="aksi-horizontal">
-      <button class="btn-aksi edit" onclick="window.location.href='https://skretaris1919-cloud.github.io/KAUNTRI/TRANSAKSIMASSAL.HTML'">💸 Transaksi massal</button>
-      <button class="btn-aksi input-saldo" onclick="window.location.href='https://skretaris1919-cloud.github.io/KAUNTRI/INPUT SALDO.HTML'">💰 Input Saldo</button>
-      <button class="btn-aksi cetak-kartu" onclick="window.location.href='https://skretaris1919-cloud.github.io/KAUNTRI/KARTU.HTML'">📄 Cetak Kartu</button>
+      <button class="btn-aksi edit" onclick="window.location.href='TRANSAKSIMASSAL.html'">💸 Transaksi massal</button>
+      <button class="btn-aksi input-saldo" onclick="window.location.href='INPUT%20SALDO.html'">💰 Input Saldo</button>
+      <button class="btn-aksi cetak-kartu" onclick="window.location.href='KARTU.html'">📄 Cetak Kartu</button>
     </div>
   </div>
 
@@ -682,6 +679,7 @@ document.getElementById('nominal').addEventListener('keydown', function (e) {
 
 //SIMPAN
 document.getElementById('btn-simpan').addEventListener('click', async () => {
+  // 🔄 Ambil semua data dari form
   const data = {
     no_id: document.getElementById('no-id').value.trim(),
     nama: document.getElementById('nama').value.trim(),
@@ -699,12 +697,17 @@ document.getElementById('btn-simpan').addEventListener('click', async () => {
     created_by: 'system'
   };
 
+  // ✅ Validasi minimal
   if (!data.no_id || !data.nominal) {
     alert('No ID dan Nominal wajib diisi.');
     return;
   }
 
-  const { error } = await supabase.from('tb_transaksi').insert([data]);
+  // ✅ Simpan ke tb_transaksi
+  const { error } = await supabase
+    .from('tb_transaksi')
+    .insert([data]);
+
   if (error) {
     console.error('Gagal simpan:', error.message);
     alert('Gagal menyimpan data.');
@@ -713,6 +716,7 @@ document.getElementById('btn-simpan').addEventListener('click', async () => {
 
   alert('Data berhasil disimpan ke tb_transaksi.');
 
+  // ✅ Update tb_saldo berdasarkan no_id
   await supabase
     .from('tb_saldo')
     .update({
@@ -721,57 +725,15 @@ document.getElementById('btn-simpan').addEventListener('click', async () => {
     })
     .eq('no_id', data.no_id);
 
-  const { data: saldoData, error: saldoError } = await supabase
-    .from('tb_saldo')
-    .select('wa')
-    .eq('no_id', data.no_id)
-    .limit(1);
+  // 🔄 Reset semua input
+  document.querySelectorAll('input').forEach(input => {
+    input.value = '';
+  });
 
-  if (saldoError) {
-    console.warn('Gagal ambil nomor WA:', saldoError.message);
-  } else if (saldoData && saldoData.length > 0) {
-    const nomorWA = saldoData[0].wa?.trim();
-    const isValidWA = /^(\+62|62|08)\d{8,}$/.test(nomorWA);
-
-    if (nomorWA && isValidWA) {
-      const isiPesan = `Putra anda atas nama ${data.nama} dengan no ID ${data.no_id} telah melakukan transaksi senilai ${formatRupiah(data.nominal)}. Saldo kiriman sisa ${formatRupiah(data.jumlah_kiriman)} dan saldo terakhir ${formatRupiah(data.saldo_terbaru)}.`;
-
-      try {
-        const res = await fetch('https://script.google.com/macros/s/AKfycbxRO7TeezRQXNAIpW0F36gE8eSio7vNSaejqsAqEcM1mtZnZW_GEpjNoL5ehaqHtGPO/exec', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ nomor: nomorWA, pesan: isiPesan })
-        });
-
-        const hasil = await res.json();
-        await supabase.from('tb_log_wa').insert([{
-          no_id: data.no_id,
-          nama: data.nama,
-          nomor_wa: nomorWA,
-          isi_pesan: isiPesan,
-          waktu: new Date().toISOString(),
-          status: hasil.status || 'tidak diketahui'
-        }]);
-
-        console.log('✅ WA relay berhasil:', hasil.status);
-      } catch (err) {
-        console.error('❌ Gagal relay WA:', err.message);
-        await supabase.from('tb_log_wa').insert([{
-          no_id: data.no_id,
-          nama: data.nama,
-          nomor_wa: nomorWA,
-          isi_pesan: isiPesan,
-          waktu: new Date().toISOString(),
-          status: 'gagal'
-        }]);
-      }
-    } else {
-      console.log('Nomor WA tidak tersedia atau tidak valid.');
-    }
-  }
-
-  document.querySelectorAll('input').forEach(input => input.value = '');
+  // 🎯 Fokus ke no-id
   document.getElementById('no-id').focus();
+
+  // 🔁 Refresh kalkulasi dan tabel
   updateKalkulasi();
   loadTransaksiTable();
 });
