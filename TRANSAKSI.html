@@ -682,7 +682,6 @@ document.getElementById('nominal').addEventListener('keydown', function (e) {
 
 //SIMPAN
 document.getElementById('btn-simpan').addEventListener('click', async () => {
-  // 🔄 Ambil semua data dari form
   const data = {
     no_id: document.getElementById('no-id').value.trim(),
     nama: document.getElementById('nama').value.trim(),
@@ -700,17 +699,12 @@ document.getElementById('btn-simpan').addEventListener('click', async () => {
     created_by: 'system'
   };
 
-  // ✅ Validasi minimal
   if (!data.no_id || !data.nominal) {
     alert('No ID dan Nominal wajib diisi.');
     return;
   }
 
-  // ✅ Simpan ke tb_transaksi
-  const { error } = await supabase
-    .from('tb_transaksi')
-    .insert([data]);
-
+  const { error } = await supabase.from('tb_transaksi').insert([data]);
   if (error) {
     console.error('Gagal simpan:', error.message);
     alert('Gagal menyimpan data.');
@@ -719,7 +713,6 @@ document.getElementById('btn-simpan').addEventListener('click', async () => {
 
   alert('Data berhasil disimpan ke tb_transaksi.');
 
-  // ✅ Update tb_saldo berdasarkan no_id
   await supabase
     .from('tb_saldo')
     .update({
@@ -728,15 +721,57 @@ document.getElementById('btn-simpan').addEventListener('click', async () => {
     })
     .eq('no_id', data.no_id);
 
-  // 🔄 Reset semua input
-  document.querySelectorAll('input').forEach(input => {
-    input.value = '';
-  });
+  const { data: saldoData, error: saldoError } = await supabase
+    .from('tb_saldo')
+    .select('wa')
+    .eq('no_id', data.no_id)
+    .limit(1);
 
-  // 🎯 Fokus ke no-id
+  if (saldoError) {
+    console.warn('Gagal ambil nomor WA:', saldoError.message);
+  } else if (saldoData && saldoData.length > 0) {
+    const nomorWA = saldoData[0].wa?.trim();
+    const isValidWA = /^(\+62|62|08)\d{8,}$/.test(nomorWA);
+
+    if (nomorWA && isValidWA) {
+      const isiPesan = `Putra anda atas nama ${data.nama} dengan no ID ${data.no_id} telah melakukan transaksi senilai ${formatRupiah(data.nominal)}. Saldo kiriman sisa ${formatRupiah(data.jumlah_kiriman)} dan saldo terakhir ${formatRupiah(data.saldo_terbaru)}.`;
+
+      try {
+        const res = await fetch('https://script.google.com/macros/s/AKfycbxRO7TeezRQXNAIpW0F36gE8eSio7vNSaejqsAqEcM1mtZnZW_GEpjNoL5ehaqHtGPO/exec', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nomor: nomorWA, pesan: isiPesan })
+        });
+
+        const hasil = await res.json();
+        await supabase.from('tb_log_wa').insert([{
+          no_id: data.no_id,
+          nama: data.nama,
+          nomor_wa: nomorWA,
+          isi_pesan: isiPesan,
+          waktu: new Date().toISOString(),
+          status: hasil.status || 'tidak diketahui'
+        }]);
+
+        console.log('✅ WA relay berhasil:', hasil.status);
+      } catch (err) {
+        console.error('❌ Gagal relay WA:', err.message);
+        await supabase.from('tb_log_wa').insert([{
+          no_id: data.no_id,
+          nama: data.nama,
+          nomor_wa: nomorWA,
+          isi_pesan: isiPesan,
+          waktu: new Date().toISOString(),
+          status: 'gagal'
+        }]);
+      }
+    } else {
+      console.log('Nomor WA tidak tersedia atau tidak valid.');
+    }
+  }
+
+  document.querySelectorAll('input').forEach(input => input.value = '');
   document.getElementById('no-id').focus();
-
-  // 🔁 Refresh kalkulasi dan tabel
   updateKalkulasi();
   loadTransaksiTable();
 });
@@ -762,10 +797,3 @@ document.getElementById('btn-simpan').addEventListener('click', async () => {
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
