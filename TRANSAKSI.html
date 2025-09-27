@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Form Kasir Santri</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f0f2f5;
+      margin: 0;
+      padding: 0;
+    }
+
+
+    .judul-box {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 24px;
+      text-align: center;
+      color: #333;
+    }
+
+.box-pasangan {
+  display: flex;
+  gap: 32px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 32px;
+}
+
+.box-no-id {
+  flex: 2; /* ⬅️ Lebih lebar dari box kedua */
+  background-color: #fff8e1;
+  border: 2px solid #ffc107;
+  border-radius: 12px;
+  padding: 20px;
+  box-sizing: border-box;
+  max-width: 600px;
+  width: 100%;
+}
+
+.box-no-id.kedua {
+  flex: 1; /* ⬅️ Lebih sempit */
+  background-color: #e1f5fe;
+  border: 2px solid #03a9f4;
+  border-radius: 12px;
+  padding: 20px;
+  box-sizing: border-box;
+  max-width: 400px;
+  width: 100%;
+}
+
+.gambar-area {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.gambar-penuh {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain; /* ⬅️ Ini yang bikin gambar tetap proporsional */
+  border-radius: 8px;
+}  
+
+.box-no-id.kedua.gambar-saja {
+  display: flex;
+  flex-direction: column; /* ⬅️ gambar di atas, tombol di bawah */
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.aksi-horizontal {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.btn-aksi {
+  padding: 10px 16px;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  min-width: 140px;
+  transition: background-color 0.3s ease;
+}
+
+/* ✅ Transaksi Massal */
+.btn-aksi.edit {
+  background-color: #28a745;
+  color: white;
+  transition: background-color 0.3s ease;
+}
+.btn-aksi.edit:hover {
+  background-color: #218838;
+}
+
+/* ✅ Input Saldo */
+.btn-aksi.input-saldo {
+  background-color: #ffc107;
+  color: #333;
+}
+.btn-aksi.input-saldo:hover {
+  background-color: #e0a800;
+}
+
+/* ✅ Cetak Kartu */
+.btn-aksi.cetak-kartu {
+  background-color: #17a2b8;
+  color: white;
+  transition: background-color 0.3s ease;
+}
+.btn-aksi.cetak-kartu:hover {
+  background-color: #138496;
+}
+
+  .no-id-grid {
+      display: flex;
+      flex-direction: row;
+      gap: 24px;
+      align-items: flex-start;
+    }
+
+    .form-area {
+      flex: 2;
+    }
+
+    .foto-area {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+.foto-box {
+  width: 160px;
+  height: 160px;
+  border: 2px dashed #aaa;
+  border-radius: 8px;
+  background-color: #fefefe;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden; /* ⬅️ penting agar gambar tidak keluar */
+}
+
+.foto-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* ⬅️ ini yang bikin gambar pas dan proporsional */
+  border-radius: 8px;
+  display: block;
+}
+
+    .box-no-id label {
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 3px;
+      display: block;
+      color: #333;
+    }
+
+    .box-no-id input {
+      font-size: 20px;
+      font-weight: bold;
+      padding: 14px 16px;
+      width: 100%;
+      border-radius: 8px;
+      border: 2px solid #ccc;
+      box-sizing: border-box;
+    }
+
+    .box-form-horizontal,
+    .box-form-horizontal.kedua {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      overflow-x: auto;
+      margin-top: 12px;
+    }
+
+    .box-form-horizontal .form-group,
+    .box-form-horizontal.kedua .form-group {
+      flex: 1 1 150px;
+      display: flex;
+      flex-direction: column;
+      min-width: 150px;
+    }
+
+    .form-group label {
+      font-weight: bold;
+      margin-bottom: 6px;
+      font-size: 14px;
+      color: #333;
+    }
+
+    .form-group input {
+      padding: 10px 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    .form-group input[readonly] {
+      background-color: #e9ecef;
+    }
+
+    .btn-simpan {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      margin-top: 24px;
+      width: 100%;
+    }
+
+input.negatif {
+  color: red;
+  font-weight: bold;
+}
+   .btn-simpan:hover {
+      background-color: #ff5722;
+    }
+.btn-simpan:focus {
+  background-color: #ff5722; /* 🟠 sama seperti hover */
+  outline: none; /* opsional, hilangkan garis biru default */
+}
+
+.table-wrapper {
+  width: 100%;
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  margin-top: 10px;
+  margin-bottom: 24px
+}
+
+#tabel-transaksi {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+#tabel-transaksi th,
+#tabel-transaksi td {
+  padding: 6px 10px;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+  white-space: nowrap;
+}
+
+#tabel-transaksi thead {
+  position: sticky;
+  top: 0;
+  background-color: #e8f5e9; /* ⬅️ biru pudar */
+  z-index: 1;
+}
+
+#tabel-transaksi tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+#tabel-transaksi tbody tr:hover {
+  background-color: #e6f7ff;
+}
+
+.kasir-wrapper {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.judul-box {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+    @media (max-width: 768px) {
+      .no-id-grid {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="kasir-wrapper">
+  <h3 class="judul-box">FORM KASIR SANTRI</h3>
+
+  <div class="box-pasangan">
+  <!-- 🔶 Box ID 1 -->
+  <div class="box-no-id">
+    <div class="no-id-grid">
+      <div class="form-area">
+        <div class="form-group">
+          <label for="no-id">No ID Santri</label>
+          <input type="text" id="no-id" placeholder="ID unik santri">
+        </div>
+        <div class="form-group">
+          <label for="nama">Nama</label>
+          <input type="text" id="nama" placeholder="Nama lengkap">
+        </div>
+        <div class="form-group">
+          <label for="nominal">Nominal</label>
+          <input type="text" id="nominal" placeholder="Masukkan nominal transaksi">
+        </div>
+
+        <!-- ✅ Tombol SIMPAN tetap di dalam pasangan -->
+        <div class="form-group">
+          <button id="btn-simpan" class="btn-simpan">TRANSAKSI</button>
+        </div>
+      </div>
+
+      <div class="foto-area">
+        <div class="foto-box">
+          <img id="preview-foto" src="" alt="Foto Santri">
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- 🔷 Box ID 2: Gambar Saja -->
+<div class="box-no-id kedua gambar-saja">
+  <div class="gambar-area">
+    <img src="https://tse4.mm.bing.net/th/id/OIP.Byp3baV39njGXGW04hOyNQHaE4?pid=Api&P=0&h=180" alt="Icon Transaksi" class="gambar-penuh">
+  </div>
+
+  <!-- ✅ Tombol horizontal di bawah gambar -->
+  <div class="aksi-horizontal">
+    <button class="btn-aksi edit" onclick="window.location.href='TRANSAKSIMASSAL.html'">💸 Transaksi massal</button>
+    <button class="btn-aksi input-saldo" onclick="window.location.href='INPUT%20SALDO.html'">💰 Input Saldo</button>
+    <button class="btn-aksi cetak-kartu" onclick="window.location.href='KARTU.html'">📄 Cetak Kartu</button>
+  </div>
+</div>
+
+    <div class="box-form-horizontal">
+      <div class="form-group"><label for="kamar">Nama Kamar</label><input type="text" id="kamar"></div>
+      <div class="form-group"><label for="alamat">Alamat</label><input type="text" id="alamat"></div>
+      <div class="form-group"><label for="jumlah">Saldo kiriman</label><input type="text" id="jumlah"></div>
+      <div class="form-group"><label for="saldo-awal">Saldo Tabungan</label><input type="text" id="saldo-awal"></div>
+      <div class="form-group"><label for="saldo-akhir">Saldo Akhir</label><input type="text" id="saldo-akhir" readonly></div>
+    </div>
+
+    <div class="box-form-horizontal kedua">
+      <div class="form-group"><label for="limit-harian">Limit Harian</label><input type="text" id="limit-harian"></div>
+      <div class="form-group"><label for="total-hari-ini">Total Hari Ini</label><input type="text" id="total-hari-ini"></div>
+      <div class="form-group"><label for="makan">Makan</label><input type="text" id="makan"></div>
+      <div class="form-group"><label for="jumlah-kiriman">Sisa Kiriman</label><input type="text" id="jumlah-kiriman" readonly></div>
+      <div class="form-group"><label for="saldo-terbaru">Saldo Terbaru</label><input type="text" id="saldo-terbaru" readonly></div>
+    </div>
+  </div>
+
+<div class="table-wrapper">
+<table id="tabel-transaksi">
+  <thead>
+    <tr>
+      <th>No ID</th>
+      <th>Nama</th>
+      <th>Kamar</th>
+      <th>Alamat</th>
+      <th>Jumlah</th>
+      <th>Nominal</th>
+      <th>Saldo Awal</th>
+      <th>Saldo Akhir</th>
+      <th>Limit Harian</th>
+      <th>Makan</th>
+      <th>Jumlah Kiriman</th>
+      <th>Saldo Terbaru</th>
+      <th>Waktu</th>
+      <th>Created By</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+      <!-- Data akan dimasukkan lewat JS -->
+    </tbody>
+  </table>
+</div>
+
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+  const supabaseUrl = 'https://brnqpdvtninzyqqwhmfj.supabase.co';
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJybnFwZHZ0bmluenlxcXdobWZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc1NjU3OTQsImV4cCI6MjA3MzE0MTc5NH0.6u2P5ANnDV1237hEY73M0OHRDftwc3-G0JbRx44YcZc'; // 🔒 pastikan aman
+  const supabase = createClient(supabaseUrl, supabaseKey);
+
+  // 🔢 Format visual Rp
+function formatRupiah(angka) {
+  if (angka === '' || angka === null || angka === undefined) return '';
+  const num = parseFloat(angka.toString().replace(/[^\d\-]/g, '')); // 🔧 pertahankan minus
+  if (isNaN(num)) return '';
+  const isNegative = num < 0;
+  const formatted = Math.abs(num).toLocaleString('id-ID');
+  return (isNegative ? '-Rp ' : 'Rp ') + formatted;
+}
+
+  // 🔢 Ambil angka asli dari Rp
+  function unformatRupiah(rpString) {
+    return parseFloat(rpString.replace(/[^\d]/g, '')) || 0;
+  }
+
+  // 🔁 Kalkulasi otomatis
+function updateKalkulasi() {
+  const nominalInput = document.getElementById('nominal');
+  const jumlahInput = document.getElementById('jumlah');
+  const saldoAwalInput = document.getElementById('saldo-awal');
+  const jumlahKirimanInput = document.getElementById('jumlah-kiriman');
+  const saldoTerbaruInput = document.getElementById('saldo-terbaru');
+
+  const nominal = unformatRupiah(nominalInput.value);
+  const jumlah = unformatRupiah(jumlahInput.value);
+  const saldoAwal = unformatRupiah(saldoAwalInput.value);
+
+  const kiriman = jumlah - nominal;
+  const saldoTerbaru = saldoAwal + kiriman;
+
+  // 🔴 Validasi jika kiriman negatif
+  if (kiriman < 0) {
+    alert('Saldo kiriman Anda tidak mencukupi, silakan isi ulang.');
+    nominalInput.value = '';
+    jumlahKirimanInput.value = '';
+    saldoTerbaruInput.value = '';
+    jumlahKirimanInput.classList.remove('negatif');
+    nominalInput.focus();
+    return;
+  }
+
+  // ✅ Tampilkan hasil kalkulasi
+  jumlahKirimanInput.value = formatRupiah(kiriman);
+  saldoTerbaruInput.value = formatRupiah(saldoTerbaru);
+
+  // 🔴 Tambahkan warna merah jika minus (opsional, redundant di sini)
+  if (kiriman < 0) {
+    jumlahKirimanInput.classList.add('negatif');
+  } else {
+    jumlahKirimanInput.classList.remove('negatif');
+  }
+}
+
+ // 🔎 Hitung total transaksi hari ini berdasarkan no_id
+async function hitungTotalHariIni(noId) {
+  const hariIni = new Date().toISOString().slice(0, 10); // Format: '2025-09-19'
+
+  const { data, error } = await supabase
+    .from('tb_transaksi')
+    .select('nominal, waktu, no_id')
+    .eq('no_id', noId)
+    .gte('waktu', `${hariIni}T00:00:00`)
+    .lte('waktu', `${hariIni}T23:59:59`);
+
+  if (error) {
+    console.error('Gagal ambil data nominal hari ini:', error.message);
+    return;
+  }
+
+  let total = 0;
+  data.forEach(row => {
+    if (row.nominal) {
+      total += unformatRupiah(row.nominal); // ubah 'Rp 5.000' jadi 5000
+    }
+  });
+
+  const inputTotal = document.getElementById('total-hari-ini');
+  if (inputTotal) {
+    inputTotal.value = formatRupiah(total); // tampilkan sebagai 'Rp 24.000'
+  }
+
+  console.log(`Total nominal hari ini untuk ${noId}:`, total);
+}
+
+ // 🧾 Load tabel transaksi
+async function loadTransaksiTable() {
+  const { data, error } = await supabase
+    .from('tb_transaksi')
+    .select('no_id, nama, nama_kamar, alamat, jumlah, nominal, saldo_tabungan, saldo_akhir, limit_harian, makan, jumlah_kiriman, waktu, created_by')
+    .order('waktu', { ascending: false });
+
+  console.log('Data transaksi:', data);
+  data.forEach((row, i) => {
+    console.log(`Baris ${i}: nominal =`, row.nominal);
+  });
+
+  if (error) {
+    console.error('Gagal ambil data:', error.message);
+    return;
+  }
+
+  const tbody = document.querySelector('#tabel-transaksi tbody');
+  if (!tbody) {
+    console.error('Elemen <tbody> tidak ditemukan. Pastikan struktur HTML benar.');
+    return;
+  }
+
+  tbody.innerHTML = '';
+
+  data.forEach(row => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${row.no_id}</td>
+      <td>${row.nama}</td>
+      <td>${row.nama_kamar}</td>
+      <td>${row.alamat}</td>
+      <td>${formatRupiah(row.jumlah)}</td>
+      <td>${row.nominal}</td>
+      <td>${formatRupiah(row.saldo_tabungan)}</td>
+      <td>${formatRupiah(row.saldo_akhir)}</td>
+      <td>${formatRupiah(row.limit_harian)}</td>
+      <td>${formatRupiah(row.makan)}</td>
+      <td>${formatRupiah(row.jumlah_kiriman)}</td>
+      <td>${formatRupiah(unformatRupiah(row.saldo_tabungan) + unformatRupiah(row.jumlah_kiriman))}</td>
+      <td>${new Date(row.waktu).toLocaleString()}</td>
+      <td>${row.created_by}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+  // 🚀 Inisialisasi saat halaman siap
+  document.addEventListener('DOMContentLoaded', () => {
+    loadTransaksiTable();
+
+    const noIdInput = document.getElementById('no-id');
+    const fotoPreview = document.getElementById('preview-foto');
+
+    noIdInput.addEventListener('input', async () => {
+      const noId = noIdInput.value.trim();
+      if (!noId || noId.length < 3) return;
+
+      const fields = [
+        'nama', 'kamar', 'alamat', 'jumlah',
+        'saldo-awal', 'saldo-akhir', 'limit-harian',
+        'makan', 'jumlah-kiriman', 'saldo-terbaru', 'total-hari-ini'
+      ];
+      fields.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      if (fotoPreview) fotoPreview.src = '';
+
+      const { data, error } = await supabase
+        .from('tb_saldo')
+        .select('*')
+        .eq('no_id', noId)
+        .order('waktu', { ascending: false })
+        .limit(1);
+
+      if (error || !data || data.length === 0) {
+        console.warn('Data tidak ditemukan:', error?.message);
+        return;
+      }
+
+      const d = data[0];
+      document.getElementById('nama').value = d.nama || '';
+      document.getElementById('kamar').value = d.nama_kamar || '';
+      document.getElementById('alamat').value = d.alamat || '';
+      document.getElementById('jumlah').value = formatRupiah(d.jumlah_kiriman || 0);
+      document.getElementById('saldo-awal').value = formatRupiah(d.saldo_tabungan || 0);
+      updateKalkulasi();
+      document.getElementById('saldo-akhir').value = formatRupiah(d.saldo_akhir || 0);
+      document.getElementById('limit-harian').value = formatRupiah(d.limit_harian || 0);
+      document.getElementById('makan').value = formatRupiah(d.makan || 0);
+      document.getElementById('jumlah-kiriman').value = ''; // kosongkan dulu, biar dihitung ulang
+      
+      const kiriman = unformatRupiah(d.jumlah_kiriman || '0');
+      const saldoAwal = unformatRupiah(d.saldo_tabungan || '0');
+      document.getElementById('saldo-terbaru').value = formatRupiah(saldoAwal + kiriman);
+
+      if (d.foto_url && fotoPreview) fotoPreview.src = d.foto_url;
+      document.getElementById('nominal').focus();
+
+      updateKalkulasi();
+      await hitungTotalHariIni(noId);
+    });
+
+document.getElementById('nominal').addEventListener('keydown', function (e) {
+  if (e.key === 'Enter') {
+    e.preventDefault(); // ⛔ cegah submit default
+    document.getElementById('btn-simpan').focus(); // 🎯 pindah fokus
+  }
+});
+
+//SIMPAN
+document.getElementById('btn-simpan').addEventListener('click', async () => {
+  // 🔄 Ambil semua data dari form
+  const data = {
+    no_id: document.getElementById('no-id').value.trim(),
+    nama: document.getElementById('nama').value.trim(),
+    nama_kamar: document.getElementById('kamar').value.trim(),
+    alamat: document.getElementById('alamat').value.trim(),
+    jumlah: unformatRupiah(document.getElementById('jumlah').value.trim()),
+    saldo_tabungan: unformatRupiah(document.getElementById('saldo-awal').value.trim()),
+    saldo_akhir: unformatRupiah(document.getElementById('saldo-akhir').value.trim()),
+    limit_harian: unformatRupiah(document.getElementById('limit-harian').value.trim()),
+    makan: document.getElementById('makan').value.trim(),
+    jumlah_kiriman: unformatRupiah(document.getElementById('jumlah-kiriman').value.trim()),
+    saldo_terbaru: unformatRupiah(document.getElementById('saldo-terbaru').value.trim()),
+    nominal: unformatRupiah(document.getElementById('nominal').value.trim()),
+    waktu: new Date().toISOString(),
+    created_by: 'system'
+  };
+
+  // ✅ Validasi minimal
+  if (!data.no_id || !data.nominal) {
+    alert('No ID dan Nominal wajib diisi.');
+    return;
+  }
+
+  // ✅ Simpan ke tb_transaksi
+  const { error } = await supabase
+    .from('tb_transaksi')
+    .insert([data]);
+
+  if (error) {
+    console.error('Gagal simpan:', error.message);
+    alert('Gagal menyimpan data.');
+    return;
+  }
+
+  alert('Data berhasil disimpan ke tb_transaksi.');
+
+  // ✅ Update tb_saldo berdasarkan no_id
+  await supabase
+    .from('tb_saldo')
+    .update({
+      jumlah_kiriman: data.jumlah_kiriman,
+      saldo_akhir: data.saldo_terbaru
+    })
+    .eq('no_id', data.no_id);
+
+  // 🔄 Reset semua input
+  document.querySelectorAll('input').forEach(input => {
+    input.value = '';
+  });
+
+  // 🎯 Fokus ke no-id
+  document.getElementById('no-id').focus();
+
+  // 🔁 Refresh kalkulasi dan tabel
+  updateKalkulasi();
+  loadTransaksiTable();
+});
+
+    // 💡 Format semua input nominal
+    const nominalFields = [
+      'nominal', 'jumlah', 'saldo-awal', 'saldo-akhir',
+      'limit-harian', 'total-hari-ini', 'makan',
+      'jumlah-kiriman', 'saldo-terbaru'
+    ];
+
+    nominalFields.forEach(id => {
+      const input = document.getElementById(id);
+      if (!input) return;
+
+      input.addEventListener('input', () => {
+        const raw = unformatRupiah(input.value);
+        input.value = formatRupiah(raw);
+        if (id === 'nominal') updateKalkulasi();
+      });
+    });
+  });
+</script>
+</body>
+</html>
