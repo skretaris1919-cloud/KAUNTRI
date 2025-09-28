@@ -530,30 +530,15 @@ function updateKalkulasi() {
 
 // 🔎 Hitung total transaksi hari ini
 async function loadTransaksiTable() {
-  let allData = [];
-  let limit = 1000; // ambil per batch
-  let offset = 0;
-  let hasMore = true;
+  const { data, error } = await supabase
+    .from('tb_transaksi')
+    .select('no_id, nama, nama_kamar, alamat, jumlah, nominal, saldo_tabungan, saldo_akhir, limit_harian, makan, jumlah_kiriman, waktu, created_by')
+    .order('waktu', { ascending: false }) // urutkan dari terbaru
+    .limit(1000); // ambil hanya 1000 baris terbaru
 
-  // Ambil data dalam batch untuk menghindari batasan Supabase atau browser
-  while (hasMore) {
-    const { data, error, count } = await supabase
-      .from('tb_transaksi')
-      .select('no_id, nama, nama_kamar, alamat, jumlah, nominal, saldo_tabungan, saldo_akhir, limit_harian, makan, jumlah_kiriman, waktu, created_by', { count: 'exact' })
-      .order('waktu', { ascending: false })
-      .range(offset, offset + limit - 1);
-
-    if (error) {
-      console.error('Gagal ambil data:', error.message);
-      break;
-    }
-
-    if (data.length === 0) {
-      hasMore = false;
-    } else {
-      allData = allData.concat(data);
-      offset += limit;
-    }
+  if (error) {
+    console.error('Gagal ambil data:', error.message);
+    return;
   }
 
   const tbody = document.querySelector('#tabel-transaksi tbody');
@@ -564,7 +549,7 @@ async function loadTransaksiTable() {
 
   tbody.innerHTML = ''; // kosongkan isi sebelumnya
 
-  allData.forEach(row => {
+  data.forEach(row => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${row.no_id ?? '-'}</td>
@@ -585,7 +570,6 @@ async function loadTransaksiTable() {
     tbody.appendChild(tr);
   });
 }
-
 
 // 🚀 Inisialisasi
 document.addEventListener('DOMContentLoaded', () => {
@@ -723,6 +707,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
 
 
