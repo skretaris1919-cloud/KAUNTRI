@@ -530,15 +530,30 @@ function updateKalkulasi() {
 
 // 🔎 Hitung total transaksi hari ini
 async function loadTransaksiTable() {
-  const { data, error } = await supabase
-    .from('tb_transaksi')
-    .select('no_id, nama, nama_kamar, alamat, jumlah, nominal, saldo_tabungan, saldo_akhir, limit_harian, makan, jumlah_kiriman, waktu, created_by')
-    .order('waktu', { ascending: false })
-    .limit(10000); // ambil hingga 10.000 baris, bisa disesuaikan
+  let allData = [];
+  let limit = 1000; // ambil per batch
+  let offset = 0;
+  let hasMore = true;
 
-  if (error) {
-    console.error('Gagal ambil data:', error.message);
-    return;
+  // Ambil data dalam batch untuk menghindari batasan Supabase atau browser
+  while (hasMore) {
+    const { data, error, count } = await supabase
+      .from('tb_transaksi')
+      .select('no_id, nama, nama_kamar, alamat, jumlah, nominal, saldo_tabungan, saldo_akhir, limit_harian, makan, jumlah_kiriman, waktu, created_by', { count: 'exact' })
+      .order('waktu', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      console.error('Gagal ambil data:', error.message);
+      break;
+    }
+
+    if (data.length === 0) {
+      hasMore = false;
+    } else {
+      allData = allData.concat(data);
+      offset += limit;
+    }
   }
 
   const tbody = document.querySelector('#tabel-transaksi tbody');
@@ -549,13 +564,13 @@ async function loadTransaksiTable() {
 
   tbody.innerHTML = ''; // kosongkan isi sebelumnya
 
-  data.forEach(row => {
+  allData.forEach(row => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${row.no_id}</td>
-      <td>${row.nama}</td>
-      <td>${row.nama_kamar}</td>
-      <td>${row.alamat}</td>
+      <td>${row.no_id ?? '-'}</td>
+      <td>${row.nama ?? '-'}</td>
+      <td>${row.nama_kamar ?? '-'}</td>
+      <td>${row.alamat ?? '-'}</td>
       <td>${formatRupiah(row.jumlah)}</td>
       <td>${formatRupiah(row.nominal)}</td>
       <td>${formatRupiah(row.saldo_tabungan)}</td>
@@ -564,8 +579,8 @@ async function loadTransaksiTable() {
       <td>${formatRupiah(row.makan)}</td>
       <td>${formatRupiah(row.jumlah_kiriman)}</td>
       <td>${formatRupiah(unformatRupiah(row.saldo_tabungan) + unformatRupiah(row.jumlah_kiriman))}</td>
-      <td>${new Date(row.waktu).toLocaleString()}</td>
-      <td>${row.created_by}</td>
+      <td>${new Date(row.waktu).toLocaleString('id-ID')}</td>
+      <td>${row.created_by ?? '-'}</td>
     `;
     tbody.appendChild(tr);
   });
@@ -708,6 +723,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
 
 
