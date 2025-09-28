@@ -138,19 +138,19 @@ body {
   border: 2px solid #0074D9;
   border-radius: 6px;
 }
-    .group-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
-      border-top: 1px solid #ccc;
-      padding-top: 12px;
-    }
+.group-row {
+  display: flex;
+  flex-wrap: nowrap; /* agar tidak pindah ke baris baru */
+  gap: 16px;
+  border-top: 1px solid #ccc;
+  padding-top: 12px;
+}
 
-    .group-item {
-      flex: 1 1 200px;
-      display: flex;
-      flex-direction: column;
-    }
+.group-item {
+  flex: 1; /* atau gunakan width: 100px; jika ingin ukuran tetap */
+  min-width: 0; /* mencegah overflow */
+}
+
 
 .group-row > div {
   flex: 1 1 200px; /* ✅ Lebar minimum 200px, fleksibel */
@@ -1036,5 +1036,6 @@ async function updateDataInsaldo() {
 </body>
 
 </html>
+
 
 
