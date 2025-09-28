@@ -527,39 +527,26 @@ function updateKalkulasi() {
 }
 
 // 🔎 Hitung total transaksi hari ini
-async function hitungTotalHariIni(noId) {
-  const hariIni = new Date().toISOString().slice(0, 10);
-  const { data, error } = await supabase
-    .from('tb_transaksi')
-    .select('nominal, waktu, no_id')
-    .eq('no_id', noId)
-    .gte('waktu', `${hariIni}T00:00:00`)
-    .lte('waktu', `${hariIni}T23:59:59`);
-
-  if (error) return console.error('Gagal ambil data nominal hari ini:', error.message);
-
-  let total = 0;
-  data.forEach(row => {
-    if (row.nominal) total += unformatRupiah(row.nominal);
-  });
-
-  const inputTotal = document.getElementById('total-hari-ini');
-  if (inputTotal) inputTotal.value = formatRupiah(total);
-}
-
-// 🧾 Load tabel transaksi
 async function loadTransaksiTable() {
   const { data, error } = await supabase
     .from('tb_transaksi')
     .select('no_id, nama, nama_kamar, alamat, jumlah, nominal, saldo_tabungan, saldo_akhir, limit_harian, makan, jumlah_kiriman, waktu, created_by')
-    .order('waktu', { ascending: false });
+    .order('waktu', { ascending: false })
+    .limit(10000); // ambil hingga 10.000 baris, bisa disesuaikan
 
-  if (error) return console.error('Gagal ambil data:', error.message);
+  if (error) {
+    console.error('Gagal ambil data:', error.message);
+    return;
+  }
 
   const tbody = document.querySelector('#tabel-transaksi tbody');
-  if (!tbody) return console.error('Elemen <tbody> tidak ditemukan.');
+  if (!tbody) {
+    console.error('Elemen <tbody> tidak ditemukan.');
+    return;
+  }
 
-  tbody.innerHTML = '';
+  tbody.innerHTML = ''; // kosongkan isi sebelumnya
+
   data.forEach(row => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -568,7 +555,7 @@ async function loadTransaksiTable() {
       <td>${row.nama_kamar}</td>
       <td>${row.alamat}</td>
       <td>${formatRupiah(row.jumlah)}</td>
-      <td>${row.nominal}</td>
+      <td>${formatRupiah(row.nominal)}</td>
       <td>${formatRupiah(row.saldo_tabungan)}</td>
       <td>${formatRupiah(row.saldo_akhir)}</td>
       <td>${formatRupiah(row.limit_harian)}</td>
@@ -718,3 +705,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
