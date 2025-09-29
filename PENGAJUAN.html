@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Form Pengajuan Santri</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 480px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .field {
+      margin-bottom: 15px;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 5px;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      font-size: 15px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>📝 Form Pengajuan Santri</h2>
+
+    <div class="field">
+      <label>No ID Santri</label>
+      <input type="text" id="input-id" placeholder="Contoh: 2222" />
+      <button onclick="cariSantri()">Cari Data</button>
+    </div>
+
+    <div id="data-santri" style="display:none;">
+      <div class="field"><label>Nama</label><input type="text" id="nama" disabled /></div>
+      <div class="field"><label>Alamat</label><input type="text" id="alamat" disabled /></div>
+      <div class="field"><label>Kamar</label><input type="text" id="kamar" disabled /></div>
+
+      <div class="field"><label>Keperluan Pengajuan</label><textarea id="pengajuan" rows="3" placeholder="Contoh: beli perlengkapan mandi"></textarea></div>
+      <div class="field"><label>Nilai Pengajuan</label><input type="text" id="nilai-ajuan" placeholder="Contoh: 100000" /></div>
+
+      <button onclick="kirimPengajuan()">✅ Kirim Pengajuan</button>
+    </div>
+  </div>
+
+  <script>
+    const supabaseUrl = "https://brnqpdvtninzyqqwhmfj.supabase.co";
+    const apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJybnFwZHZ0bmluenlxcXdobWZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc1NjU3OTQsImV4cCI6MjA3MzE0MTc5NH0.6u2P5ANnDV1237hEY73M0OHRDftwc3-G0JbRx44YcZc";
+    const headers = {
+      "apikey": apiKey,
+      "Authorization": "Bearer " + apiKey,
+      "Content-Type": "application/json"
+    };
+
+    async function cariSantri() {
+      const id = document.getElementById("input-id").value.trim();
+      if (!id) return alert("Masukkan No ID terlebih dahulu.");
+
+      const url = `${supabaseUrl}/rest/v1/tb_saldo?select=no_id,nama,alamat,nama_kamar&no_id=eq.${id}&limit=1`;
+      const res = await fetch(url, { method: "GET", headers });
+      const data = await res.json();
+
+      if (!data || data.length === 0) {
+        alert("Data tidak ditemukan.");
+        return;
+      }
+
+      const row = data[0];
+      document.getElementById("nama").value = row.nama || "";
+      document.getElementById("alamat").value = row.alamat || "";
+      document.getElementById("kamar").value = row.nama_kamar || "";
+      document.getElementById("data-santri").style.display = "block";
+    }
+
+    async function kirimPengajuan() {
+      const id = document.getElementById("input-id").value.trim();
+      const pengajuan = document.getElementById("pengajuan").value.trim();
+      const nilaiRaw = document.getElementById("nilai-ajuan").value.replace(/\D/g, "");
+      const nilai = nilaiRaw || "0";
+
+      if (!pengajuan || !nilai || !id) {
+        alert("Lengkapi semua data pengajuan.");
+        return;
+      }
+
+      const updateUrl = `${supabaseUrl}/rest/v1/tb_saldo?no_id=eq.${id}`;
+      const payload = {
+        pengajuan: pengajuan,
+        nilai_ajuan: nilai,
+        sts_pengajuan: "" // 🔁 kosongkan jika sebelumnya terisi
+      };
+
+      const res = await fetch(updateUrl, {
+        method: "PATCH",
+        headers,
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        alert("✅ Pengajuan berhasil dikirim dan status dikosongkan.");
+      } else {
+        alert("❌ Gagal mengirim pengajuan.");
+      }
+    }
+
+    // 🔁 Format rupiah saat diketik
+    document.getElementById("nilai-ajuan").addEventListener("input", function () {
+      const raw = this.value.replace(/\D/g, "");
+      this.value = formatRupiah(raw);
+    });
+
+    function formatRupiah(angka) {
+      if (!angka) return "";
+      return "Rp " + angka.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+  </script>
+</body>
+</html>

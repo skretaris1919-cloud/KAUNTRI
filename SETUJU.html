@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Konfirmasi Pengajuan Santri</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f0f0f0;
+    }
+    .container {
+      max-width: 480px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .field {
+      margin-bottom: 12px;
+    }
+    .label {
+      font-weight: bold;
+      margin-bottom: 4px;
+      display: block;
+      font-size: 14px;
+    }
+    .value {
+      font-size: 15px;
+      color: #333;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #218838;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="hasil" style="display:none;">
+    <h2>Konfirmasi Pengajuan</h2>
+    <div class="field"><span class="label">No ID:</span><span class="value" id="no-id"></span></div>
+    <div class="field"><span class="label">Nama:</span><span class="value" id="nama"></span></div>
+    <div class="field"><span class="label">Alamat:</span><span class="value" id="alamat"></span></div>
+    <div class="field"><span class="label">Pengajuan:</span><span class="value" id="pengajuan"></span></div>
+    <div class="field"><span class="label">Nilai Pengajuan:</span><span class="value" id="nilai-ajuan"></span></div>
+    <button id="btn-setuju">✅ Setujui Pengajuan</button>
+  </div>
+
+  <script>
+    const supabaseUrl = "https://brnqpdvtninzyqqwhmfj.supabase.co";
+    const apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJybnFwZHZ0bmluenlxcXdobWZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc1NjU3OTQsImV4cCI6MjA3MzE0MTc5NH0.6u2P5ANnDV1237hEY73M0OHRDftwc3-G0JbRx44YcZc";
+    const headers = {
+      "apikey": apiKey,
+      "Authorization": "Bearer " + apiKey,
+      "Content-Type": "application/json"
+    };
+
+    function getNoIdFromURL() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("no_id");
+    }
+
+    async function loadData() {
+      const id = getNoIdFromURL();
+      if (!id) {
+        document.body.innerHTML = "<h3>❌ No ID tidak ditemukan di URL.</h3>";
+        return;
+      }
+
+      const url = `${supabaseUrl}/rest/v1/tb_saldo?select=no_id,nama,alamat,pengajuan,nilai_ajuan&no_id=eq.${id}&limit=1`;
+      const res = await fetch(url, { method: "GET", headers });
+      const data = await res.json();
+
+      if (!data || data.length === 0) {
+        document.body.innerHTML = `<h3>❌ Data tidak ditemukan untuk No ID: ${id}</h3>`;
+        return;
+      }
+
+      const row = data[0];
+      document.getElementById("no-id").textContent = row.no_id || "-";
+      document.getElementById("nama").textContent = row.nama || "-";
+      document.getElementById("alamat").textContent = row.alamat || "-";
+      document.getElementById("pengajuan").textContent = row.pengajuan || "-";
+      document.getElementById("nilai-ajuan").textContent = row.nilai_ajuan || "-";
+      document.getElementById("hasil").style.display = "block";
+    }
+
+    async function setujuiPengajuan() {
+      const id = document.getElementById("no-id").textContent;
+      if (!id || id === "-") return;
+
+      const updateUrl = `${supabaseUrl}/rest/v1/tb_saldo?no_id=eq.${id}`;
+      const payload = {
+        sts_pengajuan: "setuju"
+      };
+
+      const res = await fetch(updateUrl, {
+        method: "PATCH",
+        headers,
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        alert("✅ Pengajuan telah disetujui.");
+      } else {
+        alert("❌ Gagal menyetujui pengajuan.");
+      }
+    }
+
+    window.onload = () => {
+      loadData();
+      document.getElementById("btn-setuju").addEventListener("click", setujuiPengajuan);
+    };
+  </script>
+</body>
+</html>
