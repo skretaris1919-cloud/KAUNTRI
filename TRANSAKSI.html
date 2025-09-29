@@ -210,27 +210,27 @@ select:focus {
     }
 
 
-#jumlah-kiriman {
-  background-color: #009688;
+.pengajuan {
+  background-color: #009688; /* Warna dasar: teal */
   color: white;
-  height: 40px;
-  line-height: 40px;
+  height: 20px;
+  line-height: 20px;
   padding: 0 24px;
   border: none;
   border-radius: 6px;
   text-decoration: none;
   font-weight: bold;
-  font-size: 16px;
+  font-size: 12px;
   display: inline-block;
   text-align: center;
   transition: background-color 0.3s ease;
 }
 
-#jumlah-kiriman:hover {
+.pengajuan:hover {
   background-color: #00796b;
 }
 
-#jumlah-kiriman:focus {
+.pengajuan:focus {
   background-color: #00796b;
   outline: none;
   box-shadow: none;
@@ -458,8 +458,8 @@ select:focus {
         <div class="form-group"><label for="nominal">Nominal</label><input type="text" id="nominal"></div>
         <div class="form-group"><button id="btn-simpan" class="btn-simpan">TRANSAKSI</button></div>
        <div class="form-group">
-  <a href="https://skretaris1919-cloud.github.io/KAUNTRI/PENGAJUAN.html" class="btn-pengajuan" id="btn-pengajuan">PENGAJUAN</a>
-</div>
+  <a href="https://skretaris1919-cloud.github.io/KAUNTRI/PENGAJUAN.html" class="pengajuan">PENGAJUAN</a>
+</div>>
         </div>
 
       <!-- Kolom 2: Rincian 1 -->
@@ -761,7 +761,7 @@ document.getElementById('btn-simpan').addEventListener('click', async () => {
   // 🔍 Ambil data saldo lama
   const { data: saldoData, error: saldoError } = await supabase
     .from('tb_saldo')
-    .select('jumlah_kiriman, saldo_akhir, saldo_tabungan, pengajuan')
+    .select('jumlah_kiriman, saldo_akhir, saldo_tabungan, pengajuan, nilai_ajuan, sts_pengajuan')
     .eq('no_id', data.no_id)
     .order('waktu', { ascending: false })
     .limit(1);
@@ -786,6 +786,26 @@ document.getElementById('btn-simpan').addEventListener('click', async () => {
     const pengajuanBaru = document.getElementById('pengajuan')?.value.trim() || '';
     if ((saldoLama.pengajuan || '') !== pengajuanBaru) {
       updatePayload.pengajuan = pengajuanBaru;
+    }
+
+    // 🔍 Audit pengajuan jika nominal menyentuh nilai_ajuan
+    const nilaiPengajuan = parseInt(saldoLama.nilai_ajuan || "0");
+    const nominalTransaksi = parseInt(data.nominal || "0");
+    const keperluan = saldoLama.pengajuan || "-";
+
+    if (nominalTransaksi >= nilaiPengajuan && nilaiPengajuan > 0 && keperluan !== "-") {
+      const konfirmasi = confirm(
+        `⚠️ Nilai pengajuan anda senilai Rp ${nilaiPengajuan.toLocaleString("id-ID")} untuk keperluan "${keperluan}".\n` +
+        `Apakah anda yakin transaksi ini akan menghapus catatan pengajuan tersebut?`
+      );
+
+      if (konfirmasi) {
+        updatePayload.pengajuan = "";
+        updatePayload.nilai_ajuan = "";
+        updatePayload.sts_pengajuan = "";
+      } else {
+        console.log("❌ Penghapusan pengajuan dibatalkan oleh pengguna.");
+      }
     }
 
     if (Object.keys(updatePayload).length > 0) {
