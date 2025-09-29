@@ -209,6 +209,32 @@ select:focus {
       background-color: #ff5722;
     }
 
+
+#jumlah-kiriman {
+  background-color: #009688;
+  color: white;
+  height: 40px;
+  line-height: 40px;
+  padding: 0 24px;
+  border: none;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 16px;
+  display: inline-block;
+  text-align: center;
+  transition: background-color 0.3s ease;
+}
+
+#jumlah-kiriman:hover {
+  background-color: #00796b;
+}
+
+#jumlah-kiriman:focus {
+  background-color: #00796b;
+  outline: none;
+  box-shadow: none;
+}
     .gambar-area {
       width: 100%;
       display: flex;
@@ -432,8 +458,9 @@ select:focus {
         <div class="form-group"><label for="nominal">Nominal</label><input type="text" id="nominal"></div>
         <div class="form-group"><button id="btn-simpan" class="btn-simpan">TRANSAKSI</button></div>
        <div class="form-group">
-  <a href="https://skretaris1919-cloud.github.io/KAUNTRI/PENGAJUAN.html" class="btn-simpan" id="btn-pengajuan">PENGAJUAN</a>
-      </div>
+  <a href="https://skretaris1919-cloud.github.io/KAUNTRI/PENGAJUAN.html" class="btn-pengajuan" id="btn-pengajuan">PENGAJUAN</a>
+</div>
+        </div>
 
       <!-- Kolom 2: Rincian 1 -->
       <div class="kolom">
@@ -821,4 +848,5 @@ document.getElementById('btn-simpan').addEventListener('click', async () => {
 </script>
 </body>
 </html>
+
 
