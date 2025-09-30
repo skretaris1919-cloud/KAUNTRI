@@ -257,16 +257,19 @@ select:focus {
       flex-wrap: wrap;
     }
 
+
+/* Tombol Umum */
 .btn-aksi {
+  display: block;
+  width: 100%; /* ⬅️ tombol penuh lebar panel */
   padding: 10px 16px;
   font-size: 16px;
   font-weight: bold;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  min-width: 140px;
   transition: background-color 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15); /* ⬅️ bayangan awal */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 
 /* Tombol Edit */
@@ -275,8 +278,8 @@ select:focus {
   color: white;
 }
 .btn-aksi.edit:hover {
-  background-color: #218838; /* ⬅️ versi lebih gelap */
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2); /* ⬅️ efek 3D saat hover */
+  background-color: #218838;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
 
 /* Tombol Input Saldo */
@@ -298,6 +301,7 @@ select:focus {
   background-color: #138496;
   box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
+
 
 .grid-3-kolom {
   display: grid;
@@ -411,6 +415,83 @@ select:focus {
   outline: none;                 /* tanpa garis fokus */
 }
 
+.panel-filter {
+  position: fixed;
+  top: 80px;
+  right: 0;
+  height: auto;
+  width: 80px;
+  background: #f0f0f0;
+  border-radius: 8px 0 0 8px;
+  box-shadow: -2px 0 6px rgba(0,0,0,0.1);
+  transition: width 0.3s ease;
+  overflow: hidden;
+  z-index: 999;
+}
+
+.panel-filter.terbuka {
+  width: 240px;
+}
+
+.panel-header {
+  background: #1976d2;
+  color: white;
+  padding: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center;
+  border-radius: 8px 0 0 0;
+}
+
+.panel-body {
+  padding: 12px;
+  font-size: 13px;
+  display: none;
+}
+
+.panel-filter.terbuka .panel-body {
+  display: block;
+}
+
+.panel-aksi {
+  position: fixed;
+  top: 80px;
+  left: 0;
+  height: auto;
+  width: 80px;
+  background: #90ee90;
+  border-radius: 0 8px 8px 0;
+  box-shadow: 2px 0 6px rgba(0,0,0,0.1);
+  transition: width 0.3s ease;
+  overflow: hidden;
+  z-index: 999;
+}
+
+.panel-aksi.terbuka {
+  width: 240px;
+}
+
+.panel-aksi .panel-header {
+  background: #ffff00;
+  color: black;
+  padding: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center;
+  border-radius: 0 8px 0 0;
+}
+
+.panel-aksi .panel-body {
+  padding: 12px;
+  font-size: 13px;
+  display: none;
+}
+
+.panel-aksi.terbuka .panel-body {
+  display: block;
+}
+
+
   </style>
 </head>
 <body>
@@ -429,17 +510,50 @@ select:focus {
     <button id="btn-mulai" class="btn-mulai">🟢 MULAI TRANSAKSI</button>
   </div>
 
-  <!-- 🔷 Box Gambar Tetap Tampil -->
-  <div class="box-no-id kedua gambar-saja">
+<div class="box-no-id kedua gambar-saja" style="display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start;">
+  
+  <!-- 🔹 Kiri: Gambar dan Tombol -->
+  <div style="flex: 1; min-width: 280px;">
     <div class="gambar-area">
       <img src="https://tse4.mm.bing.net/th/id/OIP.Byp3baV39njGXGW04hOyNQHaE4?pid=Api&P=0&h=180" alt="Icon Transaksi" class="gambar-penuh">
     </div>
-    <div class="aksi-horizontal">
-      <button class="btn-aksi edit" onclick="window.location.href='https://skretaris1919-cloud.github.io/KAUNTRI/TRANSAKSIMASSAL.HTML'">💸 Transaksi massal</button>
-      <button class="btn-aksi input-saldo" onclick="window.location.href='https://skretaris1919-cloud.github.io/KAUNTRI/INPUT SALDO.HTML'">💰 Input Saldo</button>
-      <button class="btn-aksi cetak-kartu" onclick="window.location.href='https://skretaris1919-cloud.github.io/KAUNTRI/KARTU.HTML'">📄 Cetak Kartu</button>
+
+ <!-- 🔳 Panel Filter Minimalis -->
+<div id="panel-filter" class="panel-filter tertutup"
+     onmouseenter="bukaPanelFilter()" 
+     onmouseleave="tutupPanelFilter()">
+  <div class="panel-header">🧮 Filter</div>
+  <div class="panel-body">
+    <div class="form-group">
+      <label for="filter-id">ID Santri</label>
+      <input type="text" id="filter-id">
+    </div>
+    <div class="form-group">
+      <label for="tanggal-awal">Mulai</label>
+      <input type="date" id="tanggal-awal">
+    </div>
+    <div class="form-group">
+      <label for="tanggal-akhir">Sampai</label>
+      <input type="date" id="tanggal-akhir">
+    </div>
+    <div class="aksi-horizontal" style="margin-top: 10px;">
+      <button class="btn-aksi cetak-kartu" onclick="filterTransaksi()">🔎 Filter</button>
+      <button class="btn-aksi input-saldo" onclick="loadTransaksiTable()">🔄 Reset</button>
     </div>
   </div>
+</div>
+
+<!-- 🔳 Panel Aksi Kiri -->
+<div id="panel-aksi" class="panel-aksi tertutup"
+     onmouseenter="bukaPanelAksi()" 
+     onmouseleave="tutupPanelAksi()">
+  <div class="panel-header">⚙️ Aksi</div>
+  <div class="panel-body">
+    <button class="btn-aksi edit" onclick="window.location.href='https://skretaris1919-cloud.github.io/KAUNTRI/TRANSAKSIMASSAL.HTML'">💸 Transaksi massal</button>
+    <button class="btn-aksi input-saldo" onclick="window.location.href='https://skretaris1919-cloud.github.io/KAUNTRI/INPUT SALDO.HTML'">💰 Input Saldo</button>
+    <button class="btn-aksi cetak-kartu" onclick="window.location.href='https://skretaris1919-cloud.github.io/KAUNTRI/KARTU.HTML'">📄 Cetak Kartu</button>
+  </div>
+</div>
 
 <!-- 🔶 Overlay Transaksi -->
 <div id="transaksi-overlay" class="overlay-transaksi">
@@ -522,6 +636,7 @@ select:focus {
 </div>
 </div>
   <link rel="icon" href="data:,">
+
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
@@ -529,6 +644,91 @@ const supabase = createClient(
   'https://brnqpdvtninzyqqwhmfj.supabase.co',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJybnFwZHZ0bmluenlxcXdobWZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc1NjU3OTQsImV4cCI6MjA3MzE0MTc5NH0.6u2P5ANnDV1237hEY73M0OHRDftwc3-G0JbRx44YcZc'
 );
+
+window.bukaPanelAksi = function () {
+  const panel = document.getElementById('panel-aksi');
+  panel.classList.add('terbuka');
+  panel.classList.remove('tertutup');
+};
+
+window.tutupPanelAksi = function () {
+  const panel = document.getElementById('panel-aksi');
+  panel.classList.remove('terbuka');
+  panel.classList.add('tertutup');
+};
+
+
+window.bukaPanelFilter = function () {
+  const panel = document.getElementById('panel-filter');
+  panel.classList.add('terbuka');
+  panel.classList.remove('tertutup');
+};
+
+window.tutupPanelFilter = function () {
+  const panel = document.getElementById('panel-filter');
+  panel.classList.remove('terbuka');
+  panel.classList.add('tertutup');
+};
+
+
+
+window.filterTransaksi = async function () {
+  const id = document.getElementById('filter-id')?.value.trim();
+  const mulai = document.getElementById('tanggal-awal')?.value;
+  const sampai = document.getElementById('tanggal-akhir')?.value;
+
+  if (!mulai || !sampai) {
+    alert('Tanggal mulai dan sampai wajib diisi.');
+    return;
+  }
+
+  const mulaiISO = new Date(mulai).toISOString();
+  const sampaiISO = new Date(sampai + 'T23:59:59').toISOString();
+
+  const { data, error } = await supabase
+    .from('tb_transaksi')
+    .select('no_id, nama, nama_kamar, alamat, jumlah, nominal, saldo_tabungan, saldo_akhir, limit_harian, makan, jumlah_kiriman, waktu, catatan')
+    .gte('waktu', mulaiISO)
+    .lte('waktu', sampaiISO)
+    .order('waktu', { ascending: false });
+
+  if (error) {
+    console.error('Gagal filter:', error.message);
+    alert('Gagal mengambil data filter.');
+    return;
+  }
+
+  const tbody = document.querySelector('#tabel-transaksi tbody');
+  tbody.innerHTML = '';
+
+  data.forEach(row => {
+    // Cocokkan ID jika diisi (case-insensitive, parsial)
+    if (id && !(String(row.no_id || '').toLowerCase().includes(id.toLowerCase()))) return;
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${row.no_id ?? '-'}</td>
+      <td>${row.nama ?? '-'}</td>
+      <td>${row.nama_kamar ?? '-'}</td>
+      <td>${row.alamat ?? '-'}</td>
+      <td>${formatRupiah(row.jumlah)}</td>
+      <td>${formatRupiah(row.nominal)}</td>
+      <td>${formatRupiah(row.saldo_tabungan)}</td>
+      <td>${formatRupiah(row.saldo_akhir)}</td>
+      <td>${formatRupiah(row.limit_harian)}</td>
+      <td>${formatRupiah(row.makan)}</td>
+      <td>${formatRupiah(row.jumlah_kiriman)}</td>
+      <td>${formatRupiah(unformatRupiah(row.saldo_tabungan) + unformatRupiah(row.jumlah_kiriman))}</td>
+      <td>${new Date(row.waktu).toLocaleString('id-ID')}</td>
+      <td>${row.catatan ?? '-'}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  if (tbody.children.length === 0) {
+    alert('Tidak ditemukan transaksi yang cocok dengan filter.');
+  }
+};
 
 // 🔢 Format visual Rp
 function formatRupiah(angka) {
@@ -630,6 +830,8 @@ async function loadTransaksiTable() {
     tbody.appendChild(tr);
   });
 }
+
+window.loadTransaksiTable = loadTransaksiTable;
 
 // 🔁 Simpan transaksi
 async function simpanTransaksi() {
