@@ -525,9 +525,10 @@ select:focus {
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-const supabaseUrl = 'https://brnqpdvtninzyqqwhmfj.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJybnFwZHZ0bmluenlxcXdobWZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc1NjU3OTQsImV4cCI6MjA3MzE0MTc5NH0.6u2P5ANnDV1237hEY73M0OHRDftwc3-G0JbRx44YcZc'; // 🔒 pastikan aman
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(
+  'https://brnqpdvtninzyqqwhmfj.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJybnFwZHZ0bmluenlxcXdobWZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc1NjU3OTQsImV4cCI6MjA3MzE0MTc5NH0.6u2P5ANnDV1237hEY73M0OHRDftwc3-G0JbRx44YcZc'
+);
 
 // 🔢 Format visual Rp
 function formatRupiah(angka) {
@@ -570,13 +571,10 @@ function updateKalkulasi() {
   jumlahKirimanInput.classList.toggle('negatif', kiriman < 0);
 }
 
-// 🔎 Hitung total transaksi hari ini
+// 🔁 Hitung total transaksi hari ini
 async function hitungTotalHariIni(noId) {
-  const awalHari = new Date();
-  awalHari.setHours(0, 0, 0, 0); // jam 00:00:00
-
-  const akhirHari = new Date();
-  akhirHari.setHours(23, 59, 59, 999); // jam 23:59:59
+  const awalHari = new Date(); awalHari.setHours(0, 0, 0, 0);
+  const akhirHari = new Date(); akhirHari.setHours(23, 59, 59, 999);
 
   const { data, error } = await supabase
     .from('tb_transaksi')
@@ -585,12 +583,8 @@ async function hitungTotalHariIni(noId) {
     .gte('waktu', awalHari.toISOString())
     .lte('waktu', akhirHari.toISOString());
 
-  if (error) {
-    console.error('Gagal hitung total hari ini:', error.message);
-    return;
-  }
+  if (error) return console.error('Gagal hitung total hari ini:', error.message);
 
-  // ✅ Pastikan nominal diparsing ke angka
   const total = data.reduce((sum, row) => {
     const nilai = typeof row.nominal === 'string'
       ? parseFloat(row.nominal.replace(/[^\d]/g, '')) || 0
@@ -609,10 +603,7 @@ async function loadTransaksiTable() {
     .order('waktu', { ascending: false })
     .limit(1000);
 
-  if (error) {
-    console.error('Gagal ambil data:', error.message);
-    return;
-  }
+  if (error) return console.error('Gagal ambil data:', error.message);
 
   const tbody = document.querySelector('#tabel-transaksi tbody');
   if (!tbody) return;
@@ -640,10 +631,230 @@ async function loadTransaksiTable() {
   });
 }
 
-// 🚀 Inisialisasi
+// 🔁 Simpan transaksi
+async function simpanTransaksi() {
+  const btnSimpan = document.getElementById('btn-simpan');
+  btnSimpan.disabled = true;
+
+  const data = {
+    no_id: document.getElementById('no-id').value.trim(),
+    nama: document.getElementById('nama').value.trim(),
+    nama_kamar: document.getElementById('kamar').value.trim(),
+    alamat: document.getElementById('alamat').value.trim(),
+    jumlah: unformatRupiah(document.getElementById('jumlah').value.trim()),
+    saldo_tabungan: unformatRupiah(document.getElementById('saldo-awal').value.trim()),
+    saldo_akhir: unformatRupiah(document.getElementById('saldo-akhir').value.trim()),
+    limit_harian: unformatRupiah(document.getElementById('limit-harian').value.trim()),
+    makan: document.getElementById('makan').value.trim(),
+    jumlah_kiriman: unformatRupiah(document.getElementById('jumlah-kiriman').value.trim()),
+    saldo_terbaru: unformatRupiah(document.getElementById('saldo-terbaru').value.trim()),
+    nominal: unformatRupiah(document.getElementById('nominal').value.trim()),
+    catatan: document.getElementById('catatan').value.trim(),
+    waktu: new Date().toISOString(),
+    created_by: 'system'
+  };
+
+  if (!data.no_id || !data.nominal) {
+    alert('No ID dan Nominal wajib diisi.');
+    btnSimpan.disabled = false;
+    return;
+  }
+
+  const { error: insertError } = await supabase.from('tb_transaksi').insert([data]);
+  if (insertError) {
+    console.error('Gagal simpan:', insertError.message);
+    alert('Gagal menyimpan data.');
+    btnSimpan.disabled = false;
+    return;
+  }
+
+  alert('Data berhasil disimpan ke tb_transaksi.');
+
+  // 🔍 Ambil data saldo lama
+  const { data: saldoData, error: saldoError } = await supabase
+    .from('tb_saldo')
+    .select('jumlah_kiriman, saldo_akhir, saldo_tabungan, pengajuan, nilai_ajuan, sts_pengajuan')
+    .eq('no_id', data.no_id)
+    .order('waktu', { ascending: false })
+    .limit(1);
+
+  if (saldoError || !saldoData || saldoData.length === 0) {
+    console.warn('Tidak ditemukan data tb_saldo untuk update:', data.no_id);
+  } else {
+    const saldoLama = saldoData[0];
+    const updatePayload = {};
+
+    if (saldoLama.jumlah_kiriman !== data.jumlah_kiriman) {
+      updatePayload.jumlah_kiriman = data.jumlah_kiriman;
+    }
+    if (saldoLama.saldo_akhir !== data.saldo_terbaru) {
+      updatePayload.saldo_akhir = data.saldo_terbaru;
+    }
+    if (saldoLama.saldo_tabungan !== data.saldo_tabungan) {
+      updatePayload.saldo_tabungan = data.saldo_tabungan;
+    }
+
+    const pengajuanBaru = document.getElementById('pengajuan')?.value.trim() || '';
+    if ((saldoLama.pengajuan || '') !== pengajuanBaru) {
+      updatePayload.pengajuan = pengajuanBaru;
+    }
+
+    const nilaiPengajuan = parseInt(saldoLama.nilai_ajuan || "0");
+    const nominalTransaksi = parseInt(data.nominal || "0");
+    const keperluan = saldoLama.pengajuan || "-";
+
+    if (nominalTransaksi >= nilaiPengajuan && nilaiPengajuan > 0 && keperluan !== "-") {
+      const konfirmasi = confirm(
+        `⚠️ Nilai pengajuan anda senilai Rp ${nilaiPengajuan.toLocaleString("id-ID")} untuk keperluan "${keperluan}".\n` +
+        `Apakah anda yakin transaksi ini akan menghapus catatan pengajuan tersebut?`
+      );
+
+      if (konfirmasi) {
+        updatePayload.pengajuan = "";
+        updatePayload.nilai_ajuan = "";
+        updatePayload.sts_pengajuan = "";
+      } else {
+        console.log("❌ Penghapusan pengajuan dibatalkan oleh pengguna.");
+      }
+    }
+
+    if (Object.keys(updatePayload).length > 0) {
+      const { error: updateError } = await supabase
+        .from('tb_saldo')
+        .update(updatePayload)
+        .eq('no_id', data.no_id);
+
+      if (updateError) {
+        console.error('Gagal update tb_saldo:', updateError.message);
+      } else {
+        console.log('tb_saldo berhasil diupdate:', updatePayload);
+      }
+    } else {
+      console.log('Tidak ada perubahan pada tb_saldo, skip update.');
+    }
+  }
+
+  // 🔁 Reset semua input
+  document.querySelectorAll('input').forEach(input => input.value = '');
+  document.getElementById('no-id').focus();
+  updateKalkulasi();
+  loadTransaksiTable();
+
+  const judulTransaksi = document.getElementById('judul-transaksi');
+  if (judulTransaksi) judulTransaksi.textContent = 'TRANSAKSI SANTRI';
+
+  btnSimpan.disabled = false;
+}
+
+
+// 🔁 Update saldo
+async function updateSaldo(data) {
+  const { data: saldoData, error: saldoError } = await supabase
+    .from('tb_saldo')
+    .select('jumlah_kiriman, saldo_akhir, saldo_tabungan, pengajuan, nilai_ajuan, sts_pengajuan')
+    .eq('no_id', data.no_id)
+    .order('waktu', { ascending: false })
+    .limit(1);
+
+  if (saldoError || !saldoData || saldoData.length === 0) return;
+
+  const saldoLama = saldoData[0];
+  const updatePayload = {};
+
+  if (saldoLama.jumlah_kiriman !== data.jumlah_kiriman) updatePayload.jumlah_kiriman = data.jumlah_kiriman;
+  if (saldoLama.saldo_akhir !== data.saldo_terbaru) updatePayload.saldo_akhir = data.saldo_terbaru;
+  if (saldoLama.saldo_tabungan !== data.saldo_tabungan) updatePayload.saldo_tabungan = data.saldo_tabungan;
+
+    const pengajuanBaru = document.getElementById('pengajuan')?.value.trim() || '';
+  if ((saldoLama.pengajuan || '') !== pengajuanBaru) {
+    updatePayload.pengajuan = pengajuanBaru;
+  }
+
+  const nilaiPengajuan = parseInt(saldoLama.nilai_ajuan || "0");
+  const nominalTransaksi = parseInt(data.nominal || "0");
+  const keperluan = saldoLama.pengajuan || "-";
+
+  if (nominalTransaksi >= nilaiPengajuan && nilaiPengajuan > 0 && keperluan !== "-") {
+    const konfirmasi = confirm(
+      `⚠️ Nilai pengajuan anda senilai Rp ${nilaiPengajuan.toLocaleString("id-ID")} untuk keperluan "${keperluan}".\n` +
+      `Apakah anda yakin transaksi ini akan menghapus catatan pengajuan tersebut?`
+    );
+
+    if (konfirmasi) {
+      updatePayload.pengajuan = "";
+      updatePayload.nilai_ajuan = "";
+      updatePayload.sts_pengajuan = "";
+    } else {
+      console.log("❌ Penghapusan pengajuan dibatalkan oleh pengguna.");
+    }
+  }
+
+  if (Object.keys(updatePayload).length > 0) {
+    const { error: updateError } = await supabase
+      .from('tb_saldo')
+      .update(updatePayload)
+      .eq('no_id', data.no_id);
+
+    if (updateError) {
+      console.error('Gagal update tb_saldo:', updateError.message);
+    } else {
+      console.log('tb_saldo berhasil diupdate:', updatePayload);
+    }
+  } else {
+    console.log('Tidak ada perubahan pada tb_saldo, skip update.');
+  }
+}
+
+// 🔁 Reset form
+function resetForm() {
+  document.querySelectorAll('input').forEach(input => input.value = '');
+  document.getElementById('no-id').focus();
+  document.getElementById('judul-transaksi').textContent = 'TRANSAKSI SANTRI';
+  updateKalkulasi();
+}
+
+// 🔁 Inisialisasi saat halaman siap
 document.addEventListener('DOMContentLoaded', () => {
   loadTransaksiTable();
 
+  // 🔁 Format semua input nominal
+  const nominalFields = [
+    'nominal', 'jumlah', 'saldo-awal', 'saldo-akhir',
+    'limit-harian', 'total-hari-ini', 'makan',
+    'jumlah-kiriman', 'saldo-terbaru'
+  ];
+
+  nominalFields.forEach(id => {
+    const input = document.getElementById(id);
+    if (!input) return;
+    input.addEventListener('input', () => {
+      const raw = unformatRupiah(input.value);
+      input.value = formatRupiah(raw);
+      if (id === 'nominal') updateKalkulasi();
+    });
+  });
+
+  // 🔁 Tombol mulai transaksi
+  document.getElementById('btn-mulai').addEventListener('click', function () {
+    document.getElementById('transaksi-overlay').style.display = 'flex';
+    setTimeout(() => {
+      const inputID = document.getElementById('no-id');
+      if (inputID) {
+        inputID.focus();
+        inputID.select();
+      }
+    }, 100);
+  });
+
+  // 🔁 Enter di input nominal langsung fokus ke tombol simpan
+  document.getElementById('nominal').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      document.getElementById('btn-simpan').focus();
+    }
+  });
+
+  // 🔁 Input ID santri → load data
   const noIdInput = document.getElementById('no-id');
   const fotoPreview = document.getElementById('preview-foto');
   const judulTransaksi = document.getElementById('judul-transaksi');
@@ -706,7 +917,7 @@ document.addEventListener('DOMContentLoaded', () => {
         statusBtn.style.backgroundColor = '#c8e6c9';
         statusBtn.style.color = '#2e7d32';
       } else {
-                statusBtn.style.backgroundColor = '#ffcdd2';
+        statusBtn.style.backgroundColor = '#ffcdd2';
         statusBtn.style.color = '#c62828';
       }
     }
@@ -715,156 +926,13 @@ document.addEventListener('DOMContentLoaded', () => {
     await hitungTotalHariIni(noId);
   });
 
-  // 🔁 Enter di input nominal langsung fokus ke tombol simpan
-  document.getElementById('nominal').addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      document.getElementById('btn-simpan').focus();
-    }
-  });
-
-// 🔁 Klik tombol simpan transaksi
-document.getElementById('btn-simpan').addEventListener('click', async () => {
-  const data = {
-    no_id: document.getElementById('no-id').value.trim(),
-    nama: document.getElementById('nama').value.trim(),
-    nama_kamar: document.getElementById('kamar').value.trim(),
-    alamat: document.getElementById('alamat').value.trim(),
-    jumlah: unformatRupiah(document.getElementById('jumlah').value.trim()),
-    saldo_tabungan: unformatRupiah(document.getElementById('saldo-awal').value.trim()),
-    saldo_akhir: unformatRupiah(document.getElementById('saldo-akhir').value.trim()),
-    limit_harian: unformatRupiah(document.getElementById('limit-harian').value.trim()),
-    makan: document.getElementById('makan').value.trim(),
-    jumlah_kiriman: unformatRupiah(document.getElementById('jumlah-kiriman').value.trim()),
-    saldo_terbaru: unformatRupiah(document.getElementById('saldo-terbaru').value.trim()),
-    nominal: unformatRupiah(document.getElementById('nominal').value.trim()),
-    catatan: document.getElementById('catatan').value.trim(),
-    waktu: new Date().toISOString(),
-    created_by: 'system'
-  };
-
-  if (!data.no_id || !data.nominal) {
-    alert('No ID dan Nominal wajib diisi.');
-    return;
+  // 🔁 Pasang listener simpan hanya sekali
+  if (!window.simpanListenerTerpasang) {
+    document.getElementById('btn-simpan').addEventListener('click', simpanTransaksi);
+    window.simpanListenerTerpasang = true;
   }
-
-  // ✅ Simpan ke tb_transaksi
-  const { error: insertError } = await supabase.from('tb_transaksi').insert([data]);
-  if (insertError) {
-    console.error('Gagal simpan:', insertError.message);
-    alert('Gagal menyimpan data.');
-    return;
-  }
-
-  alert('Data berhasil disimpan ke tb_transaksi.');
-
-  // 🔍 Ambil data saldo lama
-  const { data: saldoData, error: saldoError } = await supabase
-    .from('tb_saldo')
-    .select('jumlah_kiriman, saldo_akhir, saldo_tabungan, pengajuan, nilai_ajuan, sts_pengajuan')
-    .eq('no_id', data.no_id)
-    .order('waktu', { ascending: false })
-    .limit(1);
-
-  if (saldoError || !saldoData || saldoData.length === 0) {
-    console.warn('Tidak ditemukan data tb_saldo untuk update:', data.no_id);
-  } else {
-    const saldoLama = saldoData[0];
-    const updatePayload = {};
-
-    if (saldoLama.jumlah_kiriman !== data.jumlah_kiriman) {
-      updatePayload.jumlah_kiriman = data.jumlah_kiriman;
-    }
-    if (saldoLama.saldo_akhir !== data.saldo_terbaru) {
-      updatePayload.saldo_akhir = data.saldo_terbaru;
-    }
-    if (saldoLama.saldo_tabungan !== data.saldo_tabungan) {
-      updatePayload.saldo_tabungan = data.saldo_tabungan;
-    }
-
-    // 🔁 Ambil nilai pengajuan dari input (jika ada)
-    const pengajuanBaru = document.getElementById('pengajuan')?.value.trim() || '';
-    if ((saldoLama.pengajuan || '') !== pengajuanBaru) {
-      updatePayload.pengajuan = pengajuanBaru;
-    }
-
-    // 🔍 Audit pengajuan jika nominal menyentuh nilai_ajuan
-    const nilaiPengajuan = parseInt(saldoLama.nilai_ajuan || "0");
-    const nominalTransaksi = parseInt(data.nominal || "0");
-    const keperluan = saldoLama.pengajuan || "-";
-
-    if (nominalTransaksi >= nilaiPengajuan && nilaiPengajuan > 0 && keperluan !== "-") {
-      const konfirmasi = confirm(
-        `⚠️ Nilai pengajuan anda senilai Rp ${nilaiPengajuan.toLocaleString("id-ID")} untuk keperluan "${keperluan}".\n` +
-        `Apakah anda yakin transaksi ini akan menghapus catatan pengajuan tersebut?`
-      );
-
-      if (konfirmasi) {
-        updatePayload.pengajuan = "";
-        updatePayload.nilai_ajuan = "";
-        updatePayload.sts_pengajuan = "";
-      } else {
-        console.log("❌ Penghapusan pengajuan dibatalkan oleh pengguna.");
-      }
-    }
-
-    if (Object.keys(updatePayload).length > 0) {
-      const { error: updateError } = await supabase
-        .from('tb_saldo')
-        .update(updatePayload)
-        .eq('no_id', data.no_id);
-
-      if (updateError) {
-        console.error('Gagal update tb_saldo:', updateError.message);
-      } else {
-        console.log('tb_saldo berhasil diupdate:', updatePayload);
-      }
-    } else {
-      console.log('Tidak ada perubahan pada tb_saldo, skip update.');
-    }
-  }
-
-  // 🔁 Reset semua input
-  document.querySelectorAll('input').forEach(input => input.value = '');
-  document.getElementById('no-id').focus();
-  updateKalkulasi();
-  loadTransaksiTable();
-
-  // 🔁 Reset judul transaksi ke default
-  const judulTransaksi = document.getElementById('judul-transaksi');
-  if (judulTransaksi) judulTransaksi.textContent = 'TRANSAKSI SANTRI';
 });
 
-  // 💡 Format semua input nominal
-  const nominalFields = [
-    'nominal', 'jumlah', 'saldo-awal', 'saldo-akhir',
-    'limit-harian', 'total-hari-ini', 'makan',
-    'jumlah-kiriman', 'saldo-terbaru'
-  ];
-
-  nominalFields.forEach(id => {
-    const input = document.getElementById(id);
-    if (!input) return;
-
-    input.addEventListener('input', () => {
-      const raw = unformatRupiah(input.value);
-      input.value = formatRupiah(raw);
-      if (id === 'nominal') updateKalkulasi();
-    });
-  });
-
-  // 🔁 Tombol mulai transaksi
-  document.getElementById('btn-mulai').addEventListener('click', function () {
-    document.getElementById('transaksi-overlay').style.display = 'flex';
-    setTimeout(() => {
-      const inputID = document.getElementById('no-id');
-      if (inputID) {
-        inputID.focus();
-        inputID.select();
-      }
-    }, 100);
-  });
-});
 </script>
 </body>
 </html>
