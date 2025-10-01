@@ -1310,7 +1310,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (d.foto_url && fotoPreview) fotoPreview.src = d.foto_url;
     document.getElementById('nominal').focus();
     document.getElementById('pengajuan').value = d.pengajuan || '';
-    document.getElementById('catatan').value = d.catatan || '';
+    document.getElementById('catatan').value = d.catatan || 'Harian';
 
     const pengajuanText = (d.pengajuan || '').trim().toLowerCase();
     const statusText = (d.sts_pengajuan || '').trim().toLowerCase();
@@ -1347,6 +1347,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 </script>
 </body>
 </html>
+
 
 
 
