@@ -235,13 +235,48 @@ select:focus {
   outline: none;
   box-shadow: none;
 }
-    .gambar-area {
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-bottom: 16px;
-    }
+
+
+.gambar-area {
+  display: flex;
+  justify-content: center;
+}
+
+.box-info-kiri {
+  display: flex;
+  gap: 6px; /* antar kolom makin rapat */
+  flex-wrap: nowrap; /* ⬅️ paksa sejajar horizontal */
+  background-color: #ffffff;
+  padding: 6px;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  width: 100%;
+  max-width: 360px; /* ⬅️ total box makin kecil */
+  box-sizing: border-box;
+}
+
+.kolom-info {
+  flex: 1;
+  min-width: 120px;
+}
+
+.kolom-info label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 1px;
+  font-size: 12px;
+  color: #2e7d32;
+}
+
+.kolom-info input {
+  width: 80px; /* ⬅️ lebar input makin kecil */
+  padding: 4px 6px;
+  margin-bottom: 4px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  font-size: 12px;
+  background-color: #f9f9f9;
+}
 
     .gambar-penuh {
       max-width: 100%;
@@ -512,11 +547,42 @@ select:focus {
 
 <div class="box-no-id kedua gambar-saja" style="display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start;">
   
-  <!-- 🔹 Kiri: Gambar dan Tombol -->
-  <div style="flex: 1; min-width: 280px;">
-    <div class="gambar-area">
-      <img src="https://tse4.mm.bing.net/th/id/OIP.Byp3baV39njGXGW04hOyNQHaE4?pid=Api&P=0&h=180" alt="Icon Transaksi" class="gambar-penuh">
+<<div class="gambar-area">
+  <div class="box-info-kiri">
+    <!-- 🔹 Kiri: Info Tabungan -->
+    <div class="kolom-info">
+      <label>Ttl Tabungan</label>
+      <input type="text" id="ttl-tabungan" readonly>
+      <label>Ttl Kiriman</label>
+      <input type="text" id="ttl-kiriman" readonly>
+      <label>Ttl Saldo Akhir</label>
+      <input type="text" id="ttl-saldo-akhir" readonly>
     </div>
+
+    <!-- 🔸 Kanan: Info Pengeluaran -->
+    <div class="kolom-info">
+      <label>Keluar Hari Ini</label>
+      <input type="text" id="keluar-hari" readonly>
+      <label>Keluar 1 Pekan</label>
+      <input type="text" id="keluar-pekan" readonly>
+      <label>Keluar 1 Bulan</label>
+      <input type="text" id="keluar-bulan" readonly>
+    </div>
+  </div>
+</div>
+
+  <!-- 🔸 Tengah: Gambar -->
+  <div class="gambar-wrapper">
+    <img src="https://tse4.mm.bing.net/th/id/OIP.Byp3baV39njGXGW04hOyNQHaE4?pid=Api&P=0&h=180" alt="Icon Transaksi" class="gambar-penuh">
+  </div>
+
+  <!-- 🔹 Kanan: Status Saldo -->
+  <div class="box-samping kanan">
+<h4>Grafik Transaksi Tahun 2025</h4>
+<canvas id="grafik-transaksi" width="280" height="160"></canvas>
+  </div>
+</div>
+
 
  <!-- 🔳 Panel Filter Minimalis -->
 <div id="panel-filter" class="panel-filter tertutup"
@@ -637,13 +703,85 @@ select:focus {
 </div>
   <link rel="icon" href="data:,">
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
+// 🔐 Supabase credentials
 const supabase = createClient(
   'https://brnqpdvtninzyqqwhmfj.supabase.co',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJybnFwZHZ0bmluenlxcXdobWZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc1NjU3OTQsImV4cCI6MjA3MzE0MTc5NH0.6u2P5ANnDV1237hEY73M0OHRDftwc3-G0JbRx44YcZc'
 );
+
+// 🔁 Render grafik transaksi dari tb_transaksi
+async function renderGrafikTransaksi() {
+  const { data, error } = await supabase
+    .from('tb_transaksi')
+    .select('nominal, jumlah_kiriman, waktu')
+    .gte('waktu', '2025-01-01T00:00:00')
+    .lte('waktu', '2025-12-31T23:59:59')
+    .limit(1000);
+
+  if (error || !data) {
+    console.error("Gagal ambil data grafik:", error);
+    return;
+  }
+
+  // 🔄 Kelompokkan data per bulan
+  const perBulan = {};
+  for (const row of data) {
+    const bulan = new Date(row.waktu).getMonth() + 1;
+    if (!perBulan[bulan]) perBulan[bulan] = { nominal: 0, kiriman: 0 };
+    perBulan[bulan].nominal += Number(row.nominal || 0);
+    perBulan[bulan].kiriman += Number(row.jumlah_kiriman || 0);
+  }
+
+  const labels = Array.from({ length: 12 }, (_, i) => `Bulan ${i + 1}`);
+  const nominalData = labels.map((_, i) => perBulan[i + 1]?.nominal || 0);
+  const kirimanData = labels.map((_, i) => perBulan[i + 1]?.kiriman || 0);
+
+  const canvas = document.getElementById('grafik-transaksi');
+  if (!canvas) {
+    console.error("Canvas #grafik-transaksi tidak ditemukan.");
+    return;
+  }
+
+  const ctx = canvas.getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Nominal Transaksi (Rp)',
+          data: nominalData,
+          borderColor: '#2e7d32',
+          backgroundColor: 'transparent',
+          tension: 0.3
+        },
+        {
+          label: 'Jumlah Kiriman',
+          data: kirimanData,
+          borderColor: '#0288d1',
+          backgroundColor: 'transparent',
+          tension: 0.3
+        }
+      ]
+    },
+    options: {
+      responsive: false,
+      plugins: {
+        legend: { position: 'bottom' }
+      },
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+}
+
+
 
 window.bukaPanelAksi = function () {
   const panel = document.getElementById('panel-aksi');
@@ -729,6 +867,57 @@ window.filterTransaksi = async function () {
     alert('Tidak ditemukan transaksi yang cocok dengan filter.');
   }
 };
+
+async function isiBoxKiriGlobal() {
+  try {
+    // 🔹 Ambil data saldo dari tb_saldo
+    const { data: dataSaldo, error: errorSaldo } = await supabase
+      .from('tb_saldo')
+      .select('saldo_tabungan, jumlah_kiriman, saldo_akhir')
+      .order('waktu', { ascending: false })
+      .limit(1000);
+
+    if (errorSaldo) {
+      console.error('Gagal ambil data saldo:', errorSaldo.message);
+      return;
+    }
+
+    const totalTabungan = dataSaldo.reduce((sum, row) => sum + Number(row.saldo_tabungan || 0), 0);
+    const totalKiriman = dataSaldo.reduce((sum, row) => sum + Number(row.jumlah_kiriman || 0), 0);
+    const totalSaldoAkhir = dataSaldo.reduce((sum, row) => sum + Number(row.saldo_akhir || 0), 0);
+
+    document.getElementById('ttl-tabungan').value = formatRupiah(totalTabungan);
+    document.getElementById('ttl-kiriman').value = formatRupiah(totalKiriman);
+    document.getElementById('ttl-saldo-akhir').value = formatRupiah(totalSaldoAkhir);
+
+    // 🔸 Ambil data transaksi dari tb_transaksi
+    const { data: dataTransaksi, error: errorTransaksi } = await supabase
+      .from('tb_transaksi')
+      .select('nominal, waktu')
+      .order('waktu', { ascending: false })
+      .limit(1000);
+
+    if (errorTransaksi) {
+      console.error('Gagal ambil data transaksi:', errorTransaksi.message);
+      return;
+    }
+
+    const now = new Date();
+    const awalHari = new Date(); awalHari.setHours(0, 0, 0, 0);
+    const awalPekan = new Date(now); awalPekan.setDate(now.getDate() - 7);
+    const awalBulan = new Date(now); awalBulan.setDate(now.getDate() - 30);
+
+    const totalKeluar = (start) => dataTransaksi
+      .filter(t => new Date(t.waktu) >= start)
+      .reduce((sum, t) => sum + Number(unformatRupiah(t.nominal || '0')), 0);
+
+    document.getElementById('keluar-hari').value = formatRupiah(totalKeluar(awalHari));
+    document.getElementById('keluar-pekan').value = formatRupiah(totalKeluar(awalPekan));
+    document.getElementById('keluar-bulan').value = formatRupiah(totalKeluar(awalBulan));
+  } catch (err) {
+    console.error('❌ Error isiBoxKiriGlobal:', err.message);
+  }
+}
 
 // 🔢 Format visual Rp
 function formatRupiah(angka) {
@@ -1016,8 +1205,12 @@ function resetForm() {
 }
 
 // 🔁 Inisialisasi saat halaman siap
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   loadTransaksiTable();
+  await isiBoxKiriGlobal();
+  await renderGrafikTransaksi();
+});
+
 
   // 🔁 Format semua input nominal
   const nominalFields = [
@@ -1128,12 +1321,14 @@ document.addEventListener('DOMContentLoaded', () => {
     await hitungTotalHariIni(noId);
   });
 
-  // 🔁 Pasang listener simpan hanya sekali
-  if (!window.simpanListenerTerpasang) {
-    document.getElementById('btn-simpan').addEventListener('click', simpanTransaksi);
-    window.simpanListenerTerpasang = true;
-  }
-});
+  document.addEventListener('DOMContentLoaded', async () => {
+    if (!window.simpanListenerTerpasang) {
+      document.getElementById('btn-simpan').addEventListener('click', simpanTransaksi);
+      window.simpanListenerTerpasang = true;
+    }
+
+    await isiBoxKiriGlobal();
+  });
 
 </script>
 </body>
