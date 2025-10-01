@@ -571,18 +571,30 @@ select:focus {
   </div>
 </div>
 
-  <!-- 🔸 Tengah: Gambar -->
-  <div class="gambar-wrapper">
-    <img src="https://tse4.mm.bing.net/th/id/OIP.Byp3baV39njGXGW04hOyNQHaE4?pid=Api&P=0&h=180" alt="Icon Transaksi" class="gambar-penuh">
-  </div>
-
-  <!-- 🔹 Kanan: Status Saldo -->
-  <div class="box-samping kanan">
-<h4>Grafik Transaksi Tahun 2025</h4>
-<canvas id="grafik-transaksi" width="280" height="160"></canvas>
-  </div>
+<!-- 🔸 Tengah: Gambar -->
+<div class="gambar-wrapper">
+  <img src="https://tse4.mm.bing.net/th/id/OIP.Byp3baV39njGXGW04hOyNQHaE4?pid=Api&P=0&h=180" alt="Icon Transaksi" class="gambar-penuh">
 </div>
 
+<div class="box-samping kanan" style="display: grid; grid-template-columns: 1fr 126px 160px; gap: 12px; align-items: start;">
+  <!-- Grafik Garis -->
+  <div>
+    <h4>Grafik Transaksi Tahun Ini</h4>
+    <canvas id="grafik-transaksi" width="240" height="140"></canvas>
+  </div>
+
+  <!-- Grafik Lingkaran -->
+  <div>
+    <h4>Komposisi Saldo Akhir</h4>
+    <canvas id="grafik-komposisi" width="126" height="126"></canvas>
+  </div>
+
+  <!-- Box Perbandingan -->
+<div class="box-perbandingan" style="padding: 10px; border: 1px solid #ccc; border-radius: 6px;">
+  <h4>Perbandingan Pengeluaran Terakhir</h4>
+  <p id="info-perbandingan" style="font-size: 16px; font-weight: bold; color: #2e7d32;"></p>
+</div>
+</div>
 
  <!-- 🔳 Panel Filter Minimalis -->
 <div id="panel-filter" class="panel-filter tertutup"
@@ -704,6 +716,8 @@ select:focus {
   <link rel="icon" href="data:,">
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
 
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
@@ -713,6 +727,7 @@ const supabase = createClient(
   'https://brnqpdvtninzyqqwhmfj.supabase.co',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJybnFwZHZ0bmluenlxcXdobWZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc1NjU3OTQsImV4cCI6MjA3MzE0MTc5NH0.6u2P5ANnDV1237hEY73M0OHRDftwc3-G0JbRx44YcZc'
 );
+
 
 async function renderGrafikTransaksi() {
   // 🔁 Ambil nominal dari tb_transaksi
@@ -756,6 +771,7 @@ async function renderGrafikTransaksi() {
   const nominalData = labels.map((_, i) => nominalPerBulan[i + 1] || 0);
   const kirimanData = labels.map((_, i) => kirimanPerBulan[i + 1] || 0);
 
+  // 🔁 Grafik Garis
   const canvas = document.getElementById('grafik-transaksi');
   if (!canvas) {
     console.error("Canvas #grafik-transaksi tidak ditemukan.");
@@ -794,7 +810,85 @@ async function renderGrafikTransaksi() {
       }
     }
   });
+
+  // 🔁 Grafik Lingkaran Komposisi Saldo Akhir
+  const totalSaldo = Object.values(nominalPerBulan).reduce((a, b) => a + b, 0);
+  const totalKiriman = Object.values(kirimanPerBulan).reduce((a, b) => a + b, 0);
+  const totalAkhir = totalSaldo + totalKiriman;
+
+  const canvasPie = document.getElementById('grafik-komposisi');
+  if (!canvasPie) {
+    console.error("Canvas #grafik-komposisi tidak ditemukan.");
+    return;
+  }
+
+  const ctxPie = canvasPie.getContext('2d');
+  new Chart(ctxPie, {
+    type: 'pie',
+    data: {
+      labels: ['Saldo Tabungan', 'Jumlah Kiriman'],
+      datasets: [{
+        data: [totalSaldo, totalKiriman],
+        backgroundColor: ['#4caf50', '#03a9f4'],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      plugins: {
+        legend: { position: 'bottom' },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const value = context.raw;
+              const percent = ((value / totalAkhir) * 100).toFixed(1);
+              return `${context.label}: Rp${value.toLocaleString()} (${percent}%)`;
+            }
+          }
+        },
+        datalabels: {
+          color: '#fff',
+          font: {
+            weight: 'bold',
+            size: 14
+          },
+          formatter: function(value) {
+            const percent = ((value / totalAkhir) * 100).toFixed(1);
+            return `${percent}%`;
+          }
+        }
+      }
+    },
+    plugins: [ChartDataLabels]
+  });
+
+  // 🔁 Box Perbandingan Dua Bulan Terakhir
+  const bulanNama = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+
+  const bulanAda = Object.keys(nominalPerBulan)
+    .map(b => parseInt(b))
+    .filter(b => nominalPerBulan[b] > 0)
+    .sort((a, b) => b - a); // urut mundur
+
+  if (bulanAda.length >= 2) {
+    const b1 = bulanAda[0]; // bulan terbaru
+    const b2 = bulanAda[1]; // bulan sebelumnya
+
+    const total1 = nominalPerBulan[b1] || 0;
+    const total2 = nominalPerBulan[b2] || 0;
+    const selisih = total1 - total2;
+    const arah = selisih > 0 ? '📈' : selisih < 0 ? '📉' : '➡️';
+
+    const info = `
+      ${bulanNama[b2 - 1]}: Rp${total2.toLocaleString()}<br>
+      ${bulanNama[b1 - 1]}: Rp${total1.toLocaleString()}<br>
+      Perubahan: ${arah} Rp${Math.abs(selisih).toLocaleString()}
+    `;
+
+    const infoBox = document.getElementById('info-perbandingan');
+    if (infoBox) infoBox.innerHTML = info;
+  }
 }
+
 
 
 window.bukaPanelAksi = function () {
@@ -1349,10 +1443,3 @@ document.addEventListener('DOMContentLoaded', async () => {
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
