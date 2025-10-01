@@ -498,7 +498,14 @@ body {
       <div class="form-group"><label for="saldo-tabungan">Saldo Tabungan</label><input type="text" id="saldo-tabungan"></div>
       <div class="form-group"><label for="jumlah-kiriman">Jumlah Kiriman</label><input type="text" id="jumlah-kiriman"></div>
       <div class="form-group"><label for="limit-harian">Limit Harian</label><input type="text" id="limit-harian"></div>
-      <div class="form-group"><label for="makan">Makan</label><input type="text" id="makan"></div>
+      <div class="form-group">
+  <label for="makan">Makan</label>
+  <select id="makan">
+    <option value="">-- Pilih Status --</option>
+    <option value="Ngekos">Ngekos</option>
+    <option value="Tidak Ngekos">Tidak Ngekos</option>
+  </select>
+</div>
       <div class="form-group"><label for="saldo-akhir">Saldo Akhir</label><input type="text" id="saldo-akhir"></div>
     </div>
   </div>
@@ -1036,6 +1043,7 @@ async function updateDataInsaldo() {
 </body>
 
 </html>
+
 
 
 
