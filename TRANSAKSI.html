@@ -714,32 +714,47 @@ const supabase = createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJybnFwZHZ0bmluenlxcXdobWZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc1NjU3OTQsImV4cCI6MjA3MzE0MTc5NH0.6u2P5ANnDV1237hEY73M0OHRDftwc3-G0JbRx44YcZc'
 );
 
-// 🔁 Render grafik transaksi dari tb_transaksi
 async function renderGrafikTransaksi() {
-  const { data, error } = await supabase
+  // 🔁 Ambil nominal dari tb_transaksi
+  const { data: transaksiData, error: transaksiError } = await supabase
     .from('tb_transaksi')
-    .select('nominal, jumlah_kiriman, waktu')
+    .select('nominal, waktu')
     .gte('waktu', '2025-01-01T00:00:00')
     .lte('waktu', '2025-12-31T23:59:59')
     .limit(1000);
 
-  if (error || !data) {
-    console.error("Gagal ambil data grafik:", error);
+  // 🔁 Ambil jumlah kiriman dari tb_insaldo
+  const { data: insaldoData, error: insaldoError } = await supabase
+    .from('tb_insaldo')
+    .select('jumlah_kiriman, created_at')
+    .gte('created_at', '2025-01-01T00:00:00')
+    .lte('created_at', '2025-12-31T23:59:59')
+    .limit(1000);
+
+  if (transaksiError || insaldoError || !transaksiData || !insaldoData) {
+    console.error("Gagal ambil data grafik:", transaksiError || insaldoError);
     return;
   }
 
-  // 🔄 Kelompokkan data per bulan
-  const perBulan = {};
-  for (const row of data) {
+  // 🔄 Kelompokkan nominal per bulan dari tb_transaksi
+  const nominalPerBulan = {};
+  for (const row of transaksiData) {
     const bulan = new Date(row.waktu).getMonth() + 1;
-    if (!perBulan[bulan]) perBulan[bulan] = { nominal: 0, kiriman: 0 };
-    perBulan[bulan].nominal += Number(row.nominal || 0);
-    perBulan[bulan].kiriman += Number(row.jumlah_kiriman || 0);
+    if (!nominalPerBulan[bulan]) nominalPerBulan[bulan] = 0;
+    nominalPerBulan[bulan] += Number(row.nominal || 0);
+  }
+
+  // 🔄 Kelompokkan jumlah kiriman per bulan dari tb_insaldo
+  const kirimanPerBulan = {};
+  for (const row of insaldoData) {
+    const bulan = new Date(row.created_at).getMonth() + 1;
+    if (!kirimanPerBulan[bulan]) kirimanPerBulan[bulan] = 0;
+    kirimanPerBulan[bulan] += Number(row.jumlah_kiriman || 0);
   }
 
   const labels = Array.from({ length: 12 }, (_, i) => `Bulan ${i + 1}`);
-  const nominalData = labels.map((_, i) => perBulan[i + 1]?.nominal || 0);
-  const kirimanData = labels.map((_, i) => perBulan[i + 1]?.kiriman || 0);
+  const nominalData = labels.map((_, i) => nominalPerBulan[i + 1] || 0);
+  const kirimanData = labels.map((_, i) => kirimanPerBulan[i + 1] || 0);
 
   const canvas = document.getElementById('grafik-transaksi');
   if (!canvas) {
@@ -761,7 +776,7 @@ async function renderGrafikTransaksi() {
           tension: 0.3
         },
         {
-          label: 'Jumlah Kiriman',
+          label: 'Jumlah Kiriman (tb_insaldo)',
           data: kirimanData,
           borderColor: '#0288d1',
           backgroundColor: 'transparent',
@@ -780,7 +795,6 @@ async function renderGrafikTransaksi() {
     }
   });
 }
-
 
 
 window.bukaPanelAksi = function () {
