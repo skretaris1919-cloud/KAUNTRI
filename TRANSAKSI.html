@@ -1144,6 +1144,8 @@ async function simpanTransaksi() {
   document.getElementById('no-id').focus();
   updateKalkulasi();
   loadTransaksiTable();
+  isiBoxKiriGlobal();
+  renderGrafikTransaksi();
 
   const judulTransaksi = document.getElementById('judul-transaksi');
   if (judulTransaksi) judulTransaksi.textContent = 'TRANSAKSI SANTRI';
@@ -1347,6 +1349,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 </script>
 </body>
 </html>
+
 
 
 
