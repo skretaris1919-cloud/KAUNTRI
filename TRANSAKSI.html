@@ -59,7 +59,7 @@ select:focus {
 }
 
   .judul-container {
-  position: fixed;
+  position: relative;
   top: 0;
   left: 0;
   right: 0;
@@ -72,8 +72,8 @@ select:focus {
 
 .judul-flex {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: flex-start; /*⬅️ Semua elemen mulai dari kiri */
 }
 
 .judul-kiri {
@@ -103,6 +103,10 @@ select:focus {
 }
 
 .btn-mulai {
+  position: absolute;
+  top: 50%;              /*⬅️ Vertikal center relatif ke container */
+  left: 300px;           /* ⬅️ Geser ke kanan sejauh 300px dari kiri */
+  transform: translateY(-50%); /* ⬅️ Koreksi agar benar-benar di tengah vertikal */
   background-color: #00c853;
   color: white;
   border: none;
@@ -110,7 +114,6 @@ select:focus {
   border-radius: 4px;
   cursor: pointer;
   font-weight: bold;
-  margin-right: 8px; /*⬅️ Tambahkan ruang kecil dari tepi kanan */
 }
 
     .btn-mulai:hover {
@@ -160,6 +163,7 @@ select:focus {
   margin: 0;
   font-size: 20px;
   line-height: 1.2;
+  color: white; /*⬅️ Ubah warna teks jadi putih */
 }
 
 .subjudul-ramping {
@@ -539,7 +543,7 @@ select:focus {
 
 .panel-aksi {
   position: fixed;
-  top: 180px; /*⬅️ Geser ke bawah dari sebelumnya 80px */
+  top: 150px; /*⬅️ Geser ke bawah dari sebelumnya 80px */
   right: 0;
   height: auto;
   width: 80px;
@@ -594,7 +598,7 @@ select:focus {
   </div>
 </div>
 
-<div class="box-no-id kedua gambar-saja" style="display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; margin-top: 80px;">
+<div class="box-no-id kedua gambar-saja" style="display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; margin-top: 0px;">
 
 <<div class="gambar-area">
   <div class="box-info-kiri">
@@ -701,7 +705,7 @@ select:focus {
        <div class="form-group">
   <a href="https://skretaris1919-cloud.github.io/KAUNTRI/PENGAJUAN.html" class="pengajuan">PENGAJUAN</a>
 </div>>
-        </div>
+</div>
 
       <!-- Kolom 2: Rincian 1 -->
       <div class="kolom">
@@ -1492,5 +1496,3 @@ document.addEventListener('DOMContentLoaded', async () => {
 </script>
 </body>
 </html>
-
-
