@@ -116,7 +116,28 @@ select:focus {
   line-height: 1.2;   /* ⬅️ padatkan jarak antar baris */
   text-align: center;
 }
+.judul-flex {
+  display: flex;
+  align-items: center;     /* ⬅️ Vertikal center */
+  gap: 12px;               /* ⬅️ Jarak antara logo dan teks */
+  padding: 8px 16px;       /* ⬅️ Ruang dalam */
+}
 
+.logo-kepang {
+  height: 40px;            /* ⬅️ Ukuran logo agar tidak terlalu besar */
+  width: auto;
+}
+
+.judul-box {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.subjudul-ramping {
+  font-size: 14px;
+  margin-top: 2px;
+}
 .transaksi-box {
   position: relative;
   background: linear-gradient(to left, #2e7d32, #a5d6a7);
@@ -1443,3 +1464,4 @@ document.addEventListener('DOMContentLoaded', async () => {
 </script>
 </body>
 </html>
+
