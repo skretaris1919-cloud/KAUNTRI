@@ -42,7 +42,7 @@ select:focus {
 }
 
 .judul-container {
-  position: fixed; /* ⬅️ Tetap di posisi atas layar */
+  position: fixed; /*⬅️ Tetap di posisi atas layar */
   top: 0;           /* ⬅️ Menempel di bagian atas */
   left: 0;
   right: 0;
@@ -58,33 +58,61 @@ select:focus {
   border-radius: 0;
 }
 
+  .judul-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 999;
+  background: linear-gradient(to right, #1b5e20, #004d40);
+  padding: 8px 16px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  color: white;
+}
+
 .judul-flex {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  gap: 12px; /* ⬅️ jarak antara logo dan teks */
+}
+
+.judul-kiri {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .logo-kepang {
-  width: 48px;
-  height: 48px;
-  object-fit: contain;
-  margin-right: -4px;
-  align-self: flex-end; /* ⬅️ sejajarkan ke bawah baris */
+  height: 40px;
+  width: auto;
 }
 
-    .btn-mulai {
-      background-color: #28a745;
-      color: white;
-      border: none;
-      padding: 12px 20px;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-      margin-bottom: 24px;
-      margin-top: 120px;
-    }
+.judul-box {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.subjudul-ramping {
+  font-size: 14px;
+  margin-top: 2px;
+}
+
+.judul-kanan {
+  margin-left: auto; /* ⬅️ Dorong ke tepi kanan */
+}
+
+.btn-mulai {
+  background-color: #00c853;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-right: 8px; /*⬅️ Tambahkan ruang kecil dari tepi kanan */
+}
+
     .btn-mulai:hover {
       background-color: #218838;
     }
@@ -263,7 +291,7 @@ select:focus {
   justify-content: center;
 }
 
-.box-info-kiri {
+ .box-info-kiri {
   display: flex;
   gap: 6px; /* antar kolom makin rapat */
   flex-wrap: nowrap; /* ⬅️ paksa sejajar horizontal */
@@ -511,13 +539,12 @@ select:focus {
 
 .panel-aksi {
   position: fixed;
-  top: 80px;
-  left: 0;
+  top: 180px; /*⬅️ Geser ke bawah dari sebelumnya 80px */
+  right: 0;
   height: auto;
   width: 80px;
-  background: #90ee90;
-  border-radius: 0 8px 8px 0;
-  box-shadow: 2px 0 6px rgba(0,0,0,0.1);
+  border-radius: 8px 0 0 8px;
+  box-shadow: -2px 0 6px rgba(0,0,0,0.1);
   transition: width 0.3s ease;
   overflow: hidden;
   z-index: 999;
@@ -554,20 +581,21 @@ select:focus {
 
 <div class="judul-container">
   <div class="judul-flex">
-    <img src="https://brnqpdvtninzyqqwhmfj.supabase.co/storage/v1/object/public/fotoku12/LAMBANG.jpg" alt="Logo Kepang" class="logo-kepang">
-    <div>
-      <h3 class="judul-box">KAUNTRI</h3>
-      <div class="subjudul-ramping">Kartu Keuangan Santri</div>
+    <div class="judul-kiri">
+      <img src="https://brnqpdvtninzyqqwhmfj.supabase.co/storage/v1/object/public/fotoku12/LAMBANG.jpg" alt="Logo Kepang" class="logo-kepang">
+      <div>
+        <h3 class="judul-box">KAUNTRI</h3>
+        <div class="subjudul-ramping">Kartu Keuangan Santri</div>
+      </div>
+    </div>
+    <div class="judul-kanan">
+      <button id="btn-mulai" class="btn-mulai">🟢 MULAI TRANSAKSI</button>
     </div>
   </div>
 </div>
 
-<div style="text-align:center;">
-    <button id="btn-mulai" class="btn-mulai">🟢 MULAI TRANSAKSI</button>
-  </div>
+<div class="box-no-id kedua gambar-saja" style="display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; margin-top: 80px;">
 
-<div class="box-no-id kedua gambar-saja" style="display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start;">
-  
 <<div class="gambar-area">
   <div class="box-info-kiri">
     <!-- 🔹 Kiri: Info Tabungan -->
