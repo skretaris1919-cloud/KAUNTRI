@@ -42,32 +42,23 @@ select:focus {
 }
 
 .judul-container {
-  position: fixed; /*⬅️ Tetap di posisi atas layar */
-  top: 0;           /* ⬅️ Menempel di bagian atas */
-  left: 0;
-  right: 0;
-  z-index: 999;     /* ⬅️ Pastikan tampil di atas elemen lain */
-  
-  background: linear-gradient(to right, #1b5e20, #004d40);
-  padding: 4px 0;   /* ⬅️ Padding atas saja */
-  margin: 0 auto;
-  width: 100%;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  color: white;
-  text-align: center;
-  border-radius: 0;
-}
-
-  .judul-container {
-  position: relative;
+  position: fixed; /* ⬅️ Agar tidak ikut scroll */
   top: 0;
   left: 0;
   right: 0;
   z-index: 999;
-  background: linear-gradient(to right, #1b5e20, #004d40);
+  background-image: url('https://brnqpdvtninzyqqwhmfj.supabase.co/storage/v1/object/public/fotoku12/JUDULKAUNTRI.png');
+  background-size: cover; /* ⬅️ Gambar memenuhi lebar */
+  background-position: center;
+  background-repeat: no-repeat;
   padding: 8px 16px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   color: white;
+  height: 90px;
+}
+
+body {
+  padding-top: 100px; /* Sesuaikan dengan tinggi .judul-container */
 }
 
 .judul-flex {
@@ -104,9 +95,9 @@ select:focus {
 
 .btn-mulai {
   position: absolute;
-  top: 50%;              /*⬅️ Vertikal center relatif ke container */
-  left: 300px;           /* ⬅️ Geser ke kanan sejauh 300px dari kiri */
-  transform: translateY(-50%); /* ⬅️ Koreksi agar benar-benar di tengah vertikal */
+  top: 50%;
+  left: 550px;
+  transform: translateY(-50%);
   background-color: #00c853;
   color: white;
   border: none;
@@ -114,11 +105,20 @@ select:focus {
   border-radius: 4px;
   cursor: pointer;
   font-weight: bold;
+
+  /* ✅ Bayangan agar tampak mengambang */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+
+  /* ✅ Transisi halus saat hover */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-    .btn-mulai:hover {
-      background-color: #218838;
-    }
+/* ✅ Efek saat disentuh (hover) */
+.btn-mulai:hover {
+  transform: translateY(-55%);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.35);
+background-color: #218838;
+}
 
     .overlay-transaksi {
       position: fixed;
@@ -586,17 +586,13 @@ select:focus {
 <div class="judul-container">
   <div class="judul-flex">
     <div class="judul-kiri">
-      <img src="https://brnqpdvtninzyqqwhmfj.supabase.co/storage/v1/object/public/fotoku12/LAMBANG.jpg" alt="Logo Kepang" class="logo-kepang">
-      <div>
-        <h3 class="judul-box">KAUNTRI</h3>
-        <div class="subjudul-ramping">Kartu Keuangan Santri</div>
-      </div>
     </div>
     <div class="judul-kanan">
       <button id="btn-mulai" class="btn-mulai">🟢 MULAI TRANSAKSI</button>
     </div>
   </div>
 </div>
+
 
 <div class="box-no-id kedua gambar-saja" style="display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; margin-top: 0px;">
 
@@ -1496,3 +1492,4 @@ document.addEventListener('DOMContentLoaded', async () => {
 </script>
 </body>
 </html>
+
