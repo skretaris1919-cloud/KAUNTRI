@@ -42,13 +42,14 @@ select:focus {
 }
 
 .judul-container {
-  position: fixed; /* ⬅️ Agar tidak ikut scroll */
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 999;
-  background-image:  <img src="https://i.imgur.com/A4QlFrS.gif" alt="Logo Syibro" />
-  background-size: cover; /* ⬅️ Gambar memenuhi lebar */
+  background-image: url("https://i.imgur.com/A4QlFrS.gif");
+  background-repeat: no-repeat;
+  background-size: contain; /* atau cover */
   background-position: center;
   background-repeat: no-repeat;
   padding: 8px 16px;
@@ -1499,6 +1500,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 </script>
 </body>
 </html>
+
 
 
 
